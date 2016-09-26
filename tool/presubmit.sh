@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make sure dartfmt is run on everything
-# This assumes dart_style:format is installed via pub global activate dart_style.
+# This assumes you have dart_style as a dev_dependency
 echo "Checking dartfmt..."
 NEEDS_DARTFMT="$(find bin lib test -name "*.dart" | xargs pub run dart_style:format -n)"
 if [[ ${NEEDS_DARTFMT} != "" ]]
