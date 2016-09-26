@@ -16,32 +16,30 @@ void useSeltzerInTheServer() => setPlatform(const ServerSeltzerHttp());
 /// An implementation of [SeltzerHttp] that works within the browser.
 ///
 /// The "server" means in the Dart VM on the command line.
-abstract class ServerSeltzerHttp implements SeltzerHttp {
-  /// Use the default browser implementation of [SeltzerHttp].
+class ServerSeltzerHttp extends PlatformSeltzerHttp {
+  /// Use the default server implementation of [SeltzerHttp].
   @literal
-  const factory ServerSeltzerHttp() = _IOServerHttp;
-}
+  const factory ServerSeltzerHttp() = ServerSeltzerHttp._;
 
-class _IOServerHttp extends PlatformSeltzerHttp implements ServerSeltzerHttp {
-  const _IOServerHttp();
+  const ServerSeltzerHttp._();
 
   @override
-  SeltzerHttpRequest request(String method, String url) {
-    return new _IOSeltzerHttpRequest(method, url);
-  }
-}
-
-class _IOSeltzerHttpRequest extends PlatformSeltzerHttpRequest {
-  _IOSeltzerHttpRequest(String method, String url)
-      : super(
-          method: method,
-          url: url,
-        );
-
-  @override
-  Future<String> sendPlatform() async {
+  Future<SeltzerHttpResponse> execute(
+    String method,
+    String url, {
+    Map<String, String> headers,
+  }) async {
     var request = await new HttpClient().openUrl(method, Uri.parse(url));
+    headers.forEach(request.headers.add);
     var response = await request.close();
-    return UTF8.decodeStream(response);
+    var payload = await UTF8.decodeStream(response);
+    return new _IOSeltzerHttpResponse(payload);
   }
+}
+
+class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
+  @override
+  final String payload;
+
+  _IOSeltzerHttpResponse(this.payload);
 }

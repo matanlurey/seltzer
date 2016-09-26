@@ -15,32 +15,32 @@ void useSeltzerInTheBrowser() => setPlatform(const BrowserSeltzerHttp());
 /// An implementation of [SeltzerHttp] that works within the browser.
 ///
 /// The "browser" means support for Dartium, DDC, and dart2js.
-abstract class BrowserSeltzerHttp implements SeltzerHttp {
+class BrowserSeltzerHttp extends PlatformSeltzerHttp {
   /// Use the default browser implementation of [SeltzerHttp].
   @literal
-  const factory BrowserSeltzerHttp() = _HtmlSeltzerHttp;
-}
+  const factory BrowserSeltzerHttp() = BrowserSeltzerHttp._;
 
-class _HtmlSeltzerHttp extends PlatformSeltzerHttp
-    implements BrowserSeltzerHttp {
-  const _HtmlSeltzerHttp();
+  const BrowserSeltzerHttp._();
 
   @override
-  SeltzerHttpRequest request(String method, String url) {
-    return new _HtmlSeltzerHttpRequest(method, url);
+  Future<SeltzerHttpResponse> execute(
+    String method,
+    String url, {
+    Map<String, String> headers: const {},
+  }) async {
+    return new _HtmlSeltzerHttpResponse(await HttpRequest.request(
+      url,
+      method: method,
+      requestHeaders: headers,
+    ));
   }
 }
 
-class _HtmlSeltzerHttpRequest extends PlatformSeltzerHttpRequest {
-  _HtmlSeltzerHttpRequest(String method, String url)
-      : super(
-          method: method,
-          url: url,
-        );
+class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
+  final HttpRequest _request;
+
+  _HtmlSeltzerHttpResponse(this._request);
 
   @override
-  Future<String> sendPlatform() async {
-    var request = await HttpRequest.request(url, method: method);
-    return request.response;
-  }
+  String get payload => _request.responseText;
 }

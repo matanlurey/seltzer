@@ -24,12 +24,22 @@ Future main(List<String> args) async {
   await for (final request in server) {
     request.response.headers
       ..set('Access-Control-Allow-Origin', '*')
+      ..set('Access-Control-Allow-Headers', 'Authorization')
       ..contentType = ContentType.JSON;
-    request.response.write(JSON.encode({
+    // We do not always want to mirror back every header; hard to expect.
+    final headers = <String, dynamic>{};
+    if (request.headers['Authorization'] != null) {
+      headers['Authorization'] = request.headers['Authorization'].first;
+    }
+    final payload = <String, dynamic>{
       'method': request.method,
       'url': request.uri.toString(),
       'data': await UTF8.decodeStream(request)
-    }));
+    };
+    if (headers.isNotEmpty) {
+      payload['headers'] = headers;
+    }
+    request.response.write(JSON.encode(payload));
     await request.response.close();
   }
 }

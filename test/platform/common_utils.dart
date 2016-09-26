@@ -24,4 +24,17 @@ void runPlatformTests() {
       'data': '',
     });
   });
+
+  test('should send an HTTP header', () async {
+    var response =
+        await get(_echoUrl).set('Authorization', 'abc123').send().first;
+    expect(JSON.decode(response.payload), {
+      'headers': {
+        'Authorization': 'abc123',
+      },
+      'method': 'GET',
+      'url': '/',
+      'data': '',
+    });
+  });
 }
