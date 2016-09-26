@@ -13,7 +13,7 @@ authors:
   - Matan Lurey <matanl@google.com>
 homepage: https://github.com/matanlurey/seltzer
 dependencies:
-  meta:
+  meta: ">=1.0.4 <2.0.0"
 dev_dependencies:
   args:
   dart_style:
