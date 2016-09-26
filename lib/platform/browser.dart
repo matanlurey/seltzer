@@ -15,49 +15,32 @@ void useSeltzerInTheBrowser() => setPlatform(const BrowserSeltzerHttp());
 /// An implementation of [SeltzerHttp] that works within the browser.
 ///
 /// The "browser" means support for Dartium, DDC, and dart2js.
-abstract class BrowserSeltzerHttp implements SeltzerHttp {
+class BrowserSeltzerHttp extends PlatformSeltzerHttp {
   /// Use the default browser implementation of [SeltzerHttp].
   @literal
-  const factory BrowserSeltzerHttp() = _HtmlSeltzerHttp;
-}
+  const factory BrowserSeltzerHttp() = BrowserSeltzerHttp._;
 
-class _HtmlSeltzerHttp extends PlatformSeltzerHttp
-    implements BrowserSeltzerHttp {
-  const _HtmlSeltzerHttp();
+  const BrowserSeltzerHttp._();
 
   @override
-  SeltzerHttpRequest request(String method, String url) {
-    return new _HtmlSeltzerHttpRequest(method, url);
-  }
-}
-
-class _HtmlSeltzerHttpRequest extends PlatformSeltzerHttpRequest {
-  _HtmlSeltzerHttpRequest(String method, String url,
-      {Map<String, List<String>> headers: const {}})
-      : super(
-          headers: headers,
-          method: method,
-          url: url,
-        );
-
-  @override
-  PlatformSeltzerHttpRequest fork({
-    Map<String, List<String>> headers,
+  Future<SeltzerHttpResponse> execute(
     String method,
-    String url,
-  }) {
-    return new _HtmlSeltzerHttpRequest(method, url, headers: headers);
-  }
-
-  @override
-  Future<String> sendPlatform() async {
-    var requestHeaders = <String, String>{};
-    headers.forEach((k, v) => requestHeaders[k] = v.first);
-    var request = await HttpRequest.request(
+    String url, {
+    Map<String, String> headers: const {},
+  }) async {
+    return new _HtmlSeltzerHttpResponse(await HttpRequest.request(
       url,
       method: method,
-      requestHeaders: requestHeaders,
-    );
-    return request.response;
+      requestHeaders: headers,
+    ));
   }
+}
+
+class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
+  final HttpRequest _request;
+
+  _HtmlSeltzerHttpResponse(this._request);
+
+  @override
+  String get payload => _request.responseText;
 }

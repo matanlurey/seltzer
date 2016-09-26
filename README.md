@@ -51,8 +51,8 @@ import 'package:seltzer/platform/browser.dart';
 
 void main() {
   useSeltzerInTheBrowser();
-  seltzer.get('some/url.json').send().first.then((data) {
-    print('Retrieved: $data');
+  seltzer.get('some/url.json').send().first.then((response) {
+    print('Retrieved: ${response.payload}');
   });
 }
 ```

@@ -24,6 +24,15 @@ abstract class PlatformSeltzerHttp implements SeltzerHttp {
   /// Allows sub-classes to be const.
   const PlatformSeltzerHttp();
 
+  /// Executes with a standard input of arguments for an HTTP request.
+  ///
+  /// Returns a [Stream] of [SeltzerHttpResponse] objects.
+  Future<SeltzerHttpResponse> execute(
+    String method,
+    String url, {
+    Map<String, String> headers,
+  });
+
   @override
   @mustCallSuper
   SeltzerHttpRequest get(String url) => request('GET', url);
@@ -34,7 +43,12 @@ abstract class PlatformSeltzerHttp implements SeltzerHttp {
 
   /// Handles all HTTP [method] requests to [url].
   @protected
-  SeltzerHttpRequest request(String method, String url);
+  SeltzerHttpRequest request(String method, String url) =>
+      new PlatformSeltzerHttpRequest(
+        this,
+        method: method,
+        url: url,
+      );
 }
 
 /// An implementation of [SeltzerHttp] that delegates to an existing instance.
@@ -64,13 +78,13 @@ class SeltzerHttpTransformer implements SeltzerHttp {
 /// the server. In that case, [Stream.listen] may be preferred:
 ///     get('some/url.json').send().listen((value) => print('Got: $value'));
 abstract class SeltzerHttpRequest {
-  /// Adds [value] to an HTTP [header].
+  /// Sets [value] as an HTTP [header].
   ///
   /// Returns a new instance of [SeltzerHttpRequest] with the value added.
-  SeltzerHttpRequest addHeader(String header, String value);
+  SeltzerHttpRequest set(String header, String value);
 
   /// HTTP headers.
-  Map<String, List<String>> get headers;
+  Map<String, String> get headers;
 
   /// HTTP method to use.
   String get method;
@@ -83,9 +97,11 @@ abstract class SeltzerHttpRequest {
 }
 
 /// A partial implementation of [SeltzerHttpRequest] without platform specifics.
-abstract class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
+class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
+  final PlatformSeltzerHttp _executor;
+
   @override
-  final Map<String, List<String>> headers;
+  final Map<String, String> headers;
 
   @override
   final String method;
@@ -94,53 +110,39 @@ abstract class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
   final String url;
 
   /// Initialize a new [PlatformSeltzerHttpRequest].
-  PlatformSeltzerHttpRequest({
+  PlatformSeltzerHttpRequest(
+    this._executor, {
     this.headers: const {},
     @required this.method,
     @required this.url,
   });
 
   @override
-  SeltzerHttpRequest addHeader(String header, String value) {
-    var map = new Map<String, List<String>>.from(headers);
-    map[header] = new List<String>.unmodifiable(
-        map.putIfAbsent(header, () => <String>[]).toList()..add(value));
-    map = new Map<String, List<String>>.unmodifiable(map);
-    return fork(
-      headers: map,
+  Stream<SeltzerHttpResponse> send() {
+    return _executor
+        .execute(
+          method,
+          url,
+          headers: headers,
+        )
+        .asStream();
+  }
+
+  @override
+  PlatformSeltzerHttpRequest set(String header, String value) {
+    var headers = new Map<String, String>.from(this.headers);
+    headers[header] = value;
+    return new PlatformSeltzerHttpRequest(
+      _executor,
+      headers: new Map<String, String>.unmodifiable(headers),
       method: method,
       url: url,
     );
   }
-
-  PlatformSeltzerHttpRequest fork({
-    @required Map<String, List<String>> headers,
-    @required String method,
-    @required String url,
-  });
-
-  @override
-  Stream<SeltzerHttpResponse> send() {
-    return new Stream<SeltzerHttpResponse>.fromFuture(
-      sendPlatform().then((e) => new _DefaultSeltzerHttpResponse(e)),
-    );
-  }
-
-  /// Returns a [Future] that completes with the raw result data of the request.
-  ///
-  /// Implement using platform-specific implementation.
-  Future<String> sendPlatform();
 }
 
 /// An HTTP response object.
-abstract class SeltzerHttpResponse<T> {
+abstract class SeltzerHttpResponse {
   /// Response payload.
   String get payload;
-}
-
-class _DefaultSeltzerHttpResponse<T> implements SeltzerHttpResponse<T> {
-  @override
-  final String payload;
-
-  _DefaultSeltzerHttpResponse(this.payload);
 }

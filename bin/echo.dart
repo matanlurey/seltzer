@@ -24,11 +24,13 @@ Future main(List<String> args) async {
   await for (final request in server) {
     request.response.headers
       ..set('Access-Control-Allow-Origin', '*')
+      ..set('Access-Control-Allow-Headers', 'Authorization')
       ..contentType = ContentType.JSON;
-    final headers = <String, List<String>>{};
-    request.headers['X-Echo-Header']?.forEach((v) {
-      headers[v] = request.headers[v];
-    });
+    // We do not always want to mirror back every header; hard to expect.
+    final headers = <String, dynamic>{};
+    if (request.headers['Authorization'] != null) {
+      headers['Authorization'] = request.headers['Authorization'].first;
+    }
     final payload = <String, dynamic>{
       'method': request.method,
       'url': request.uri.toString(),
