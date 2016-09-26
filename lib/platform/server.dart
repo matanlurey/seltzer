@@ -26,21 +26,34 @@ class _IOServerHttp extends PlatformSeltzerHttp implements ServerSeltzerHttp {
   const _IOServerHttp();
 
   @override
-  SeltzerHttpRequest request(String method, String url) {
-    return new _IOSeltzerHttpRequest(method, url);
+  SeltzerHttpRequest request(String method, String url,
+      {Map<String, List<String>> headers: const {}}) {
+    return new _IOSeltzerHttpRequest(method, url, headers: headers);
   }
 }
 
 class _IOSeltzerHttpRequest extends PlatformSeltzerHttpRequest {
-  _IOSeltzerHttpRequest(String method, String url)
+  _IOSeltzerHttpRequest(String method, String url,
+      {Map<String, List<String>> headers: const {}})
       : super(
+          headers: headers,
           method: method,
           url: url,
         );
 
   @override
+  PlatformSeltzerHttpRequest fork({
+    Map<String, List<String>> headers,
+    String method,
+    String url,
+  }) {
+    return new _IOSeltzerHttpRequest(method, url, headers: headers);
+  }
+
+  @override
   Future<String> sendPlatform() async {
     var request = await new HttpClient().openUrl(method, Uri.parse(url));
+    headers.forEach(request.headers.add);
     var response = await request.close();
     return UTF8.decodeStream(response);
   }

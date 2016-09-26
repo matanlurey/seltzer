@@ -32,15 +32,32 @@ class _HtmlSeltzerHttp extends PlatformSeltzerHttp
 }
 
 class _HtmlSeltzerHttpRequest extends PlatformSeltzerHttpRequest {
-  _HtmlSeltzerHttpRequest(String method, String url)
+  _HtmlSeltzerHttpRequest(String method, String url,
+      {Map<String, List<String>> headers: const {}})
       : super(
+          headers: headers,
           method: method,
           url: url,
         );
 
   @override
+  PlatformSeltzerHttpRequest fork({
+    Map<String, List<String>> headers,
+    String method,
+    String url,
+  }) {
+    return new _HtmlSeltzerHttpRequest(method, url, headers: headers);
+  }
+
+  @override
   Future<String> sendPlatform() async {
-    var request = await HttpRequest.request(url, method: method);
+    var requestHeaders = <String, String>{};
+    headers.forEach((k, v) => requestHeaders[k] = v.first);
+    var request = await HttpRequest.request(
+      url,
+      method: method,
+      requestHeaders: requestHeaders,
+    );
     return request.response;
   }
 }

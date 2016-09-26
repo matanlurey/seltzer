@@ -23,6 +23,9 @@ void setPlatform(SeltzerHttp platform) {
   _platform = platform;
 }
 
+/// Internal method: Returns the top-level instance.
+SeltzerHttp getPlatform() => _seltzer;
+
 // Asserts that _platform is non-null before returning.
 SeltzerHttp get _seltzer {
   assert(() {

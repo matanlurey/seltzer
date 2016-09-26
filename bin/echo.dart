@@ -25,11 +25,19 @@ Future main(List<String> args) async {
     request.response.headers
       ..set('Access-Control-Allow-Origin', '*')
       ..contentType = ContentType.JSON;
-    request.response.write(JSON.encode({
+    final headers = <String, List<String>>{};
+    request.headers['X-Echo-Header']?.forEach((v) {
+      headers[v] = request.headers[v];
+    });
+    final payload = <String, dynamic>{
       'method': request.method,
       'url': request.uri.toString(),
       'data': await UTF8.decodeStream(request)
-    }));
+    };
+    if (headers.isNotEmpty) {
+      payload['headers'] = headers;
+    }
+    request.response.write(JSON.encode(payload));
     await request.response.close();
   }
 }

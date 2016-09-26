@@ -24,4 +24,20 @@ void runPlatformTests() {
       'data': '',
     });
   });
+
+  test('should send an HTTP header', () async {
+    var response = await get('$_echoUrl/replay')
+        .addHeader('X-Echo-Header', 'X-Some-Value')
+        .addHeader('X-Some-Value', 'abc123')
+        .send()
+        .first;
+    expect(JSON.decode(response.payload), {
+      'headers': {
+        'X-Some-Value': ['abc123']
+      },
+      'method': 'GET',
+      'url': '/replay',
+      'data': '',
+    });
+  });
 }
