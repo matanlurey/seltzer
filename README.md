@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/matanlurey/seltzer.svg?branch=master)](https://travis-ci.org/matanlurey/seltzer)
 
-
 An elegant and rich cross-platform HTTP library for Dart.
 
 ## Getting Started

@@ -33,8 +33,7 @@ abstract class PlatformSeltzerHttp implements SeltzerHttp {
 
 /// An HTTP request object.
 ///
-/// Every [SeltzerHttpRequest] object implements the [Stream] interface via
-/// [SeltzerHttpRequest.send].
+/// Use [SeltzerHttpRequest.send] to receive a [Stream] interface.
 ///
 /// In most simple use cases [Stream.first] will connect and return a value:
 ///     get('some/url.json').send().first.then((value) => print('Got: $value'));
@@ -42,9 +41,7 @@ abstract class PlatformSeltzerHttp implements SeltzerHttp {
 /// Some implementations of [SeltzerHttp] may choose to allow multiple responses
 /// and/or respond with a local cache first, and then make a response against
 /// the server. In that case, [Stream.listen] may be preferred:
-///     get('some/url.json').send().listen((value) {
-///       print('Got: $value');
-///     });
+///     get('some/url.json').send().listen((value) => print('Got: $value'));
 abstract class SeltzerHttpRequest {
   /// HTTP method to use.
   String get method;
@@ -53,7 +50,7 @@ abstract class SeltzerHttpRequest {
   String get url;
 
   /// Makes the HTTP request, and returns a [Stream] of results.
-  Stream<SeltzerHttpResponse> /*=Stream<SeltzerHttpResponse<E>>*/ send/*<E>*/();
+  Stream<SeltzerHttpResponse> send();
 }
 
 /// A partial implementation of [SeltzerHttpRequest] without platform specifics.
@@ -71,15 +68,16 @@ abstract class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
   });
 
   @override
-  Stream<
-      SeltzerHttpResponse> /*=Stream<SeltzerHttpResponse<E>>*/ send/*<E>*/() {
-    return new Stream<SeltzerHttpResponse/*<E>*/ >.fromFuture(
-      sendPlatform().then((e) => new _DefaultSeltzerHttpResponse/*<E>*/(e)),
+  Stream<SeltzerHttpResponse> send() {
+    return new Stream<SeltzerHttpResponse>.fromFuture(
+      sendPlatform().then((e) => new _DefaultSeltzerHttpResponse(e)),
     );
   }
 
+  /// Returns a [Future] that completes with the raw result data of the request.
+  ///
   /// Implement using platform-specific implementation.
-  Future/*<String>*/ sendPlatform();
+  Future<String> sendPlatform();
 }
 
 /// An HTTP response object.

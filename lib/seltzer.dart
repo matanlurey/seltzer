@@ -1,3 +1,6 @@
+/// An elegant and rich cross-platform HTTP library for Dart.
+library seltzer;
+
 // Re-export convenience functions that are platform independent.
 export 'package:seltzer/src/context.dart' show get, post;
 
