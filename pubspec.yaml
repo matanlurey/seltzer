@@ -1,0 +1,14 @@
+name: seltzer
+version: 0.0.1
+description: >
+  An elegant and rich cross-platform HTTP library for Dart.
+
+  Unlike most HTTP libraries, most things in Seltzer are a Stream not a Future,
+  this allows extensibility, and adding features like local caching, easy.
+
+  Seltzer is based loosely on the "superagent" package for NodeJs
+  (https://github.com/visionmedia/superagent) and the "streamy" package for
+  Dart (https://github.com/google/streamy-dart).
+authors:
+  - Matan Lurey <matanl@google.com>
+homepage: https://github.com/matanlurey/seltzer
