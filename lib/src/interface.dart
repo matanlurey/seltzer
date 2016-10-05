@@ -12,11 +12,20 @@ abstract class SeltzerHttp {
   /// Throws [StateError] if an implementation was not yet chosen.
   factory SeltzerHttp() => getPlatform();
 
+  /// Create a request to DELETE from [url].
+  SeltzerHttpRequest delete(String url);
+
   /// Create a request to GET to [url].
   SeltzerHttpRequest get(String url);
 
+  /// Create a request to PATCH to [url].
+  SeltzerHttpRequest patch(String url);
+
   /// Create a request to POST to [url].
   SeltzerHttpRequest post(String url);
+
+  /// Create a request to PUT to [url].
+  SeltzerHttpRequest put(String url);
 }
 
 /// A partial implementation of [SeltzerHttp] without platform specific details.
@@ -35,11 +44,23 @@ abstract class PlatformSeltzerHttp implements SeltzerHttp {
 
   @override
   @mustCallSuper
+  SeltzerHttpRequest delete(String url) => request('DELETE', url);
+
+  @override
+  @mustCallSuper
   SeltzerHttpRequest get(String url) => request('GET', url);
 
   @override
   @mustCallSuper
+  SeltzerHttpRequest patch(String url) => request('PATCH', url);
+
+  @override
+  @mustCallSuper
   SeltzerHttpRequest post(String url) => request('POST', url);
+
+  @override
+  @mustCallSuper
+  SeltzerHttpRequest put(String url) => request('PUT', url);
 
   /// Handles all HTTP [method] requests to [url].
   @protected
@@ -64,6 +85,15 @@ class SeltzerHttpTransformer implements SeltzerHttp {
 
   @override
   SeltzerHttpRequest post(String url) => _delegate.post(url);
+
+  @override
+  SeltzerHttpRequest put(String url) => _delegate.put(url);
+
+  @override
+  SeltzerHttpRequest delete(String url) => _delegate.delete(url);
+
+  @override
+  SeltzerHttpRequest patch(String url) => _delegate.patch(url);
 }
 
 /// An HTTP request object.

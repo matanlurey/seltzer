@@ -25,6 +25,7 @@ Future main(List<String> args) async {
     request.response.headers
       ..set('Access-Control-Allow-Origin', '*')
       ..set('Access-Control-Allow-Headers', 'Authorization')
+      ..set('Access-Control-Allow-Methods', 'DELETE, OPTIONS, PATCH, PUT, POST')
       ..contentType = ContentType.JSON;
     // We do not always want to mirror back every header; hard to expect.
     final headers = <String, dynamic>{};

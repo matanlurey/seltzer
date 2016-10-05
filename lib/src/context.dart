@@ -42,8 +42,17 @@ SeltzerHttp get _seltzer {
   return _platform;
 }
 
+/// See [SeltzerHttp.delete].
+SeltzerHttpRequest delete(String url) => _seltzer.delete(url);
+
 /// See [SeltzerHttp.get].
 SeltzerHttpRequest get(String url) => _seltzer.get(url);
 
+/// See [SeltzerHttp.patch].
+SeltzerHttpRequest patch(String url) => _seltzer.patch(url);
+
 /// See [SeltzerHttp.post].
 SeltzerHttpRequest post(String url) => _seltzer.post(url);
+
+/// See [SeltzerHttp.put].
+SeltzerHttpRequest put(String url) => _seltzer.put(url);
