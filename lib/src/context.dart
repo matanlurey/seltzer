@@ -9,19 +9,44 @@ import 'package:seltzer/src/interface.dart';
 // Once we have configurable import support then we can deprecate needing this.
 SeltzerHttp _platform;
 
+// A Provider of [SeltzerWebSocket] instances.
+typedef SeltzerWebSocket _WebSocketProvider();
+
+// The current configured _WebSocketProvider.
+
+// As with the getter _platform, users are expected to use a configuration
+// method to intialize this provider.
+_WebSocketProvider _createWebSocket;
+
+const _platformAlreadySetError = 'Platform already initialized. In most` '
+    'applications, you need only to configure the "useSeltzerInTheX" platform '
+    'method *once*; doing so more than once may introduce subtle/unsupported '
+    'bugs.';
+
 /// Internal method: Initializes the top-level methods to use [platform].
 void setPlatform(SeltzerHttp platform) {
   assert(() {
     if (_platform != null) {
-      throw new StateError(
-          'Platform already initialized. In most applications, you need only '
-          'to configure the "useSeltzerInTheX" platform method *once*; doing '
-          'so more than once may introduce subtle/unsupported bugs.');
+      throw new StateError(_platformAlreadySetError);
     }
     return true;
   });
   _platform = platform;
 }
+
+/// Internal method: Sets the callback for creating [SeltzerWebSocket]s.
+void setWebSocketProvider(_WebSocketProvider provider) {
+  assert(() {
+    if (_createWebSocket != null) {
+      throw new StateError(_platformAlreadySetError);
+    }
+    return true;
+  });
+  _createWebSocket = provider;
+}
+
+/// Internal method
+SeltzerWebSocket createWebSocket() => _createWebSocket();
 
 /// Internal method: Returns the top-level instance.
 SeltzerHttp getPlatform() => _seltzer;

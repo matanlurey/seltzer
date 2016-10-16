@@ -10,7 +10,10 @@ export 'package:seltzer/seltzer.dart';
 /// Initializes `package:seltzer/seltzer.dart` to use [BrowserSeltzerHttp].
 ///
 /// This is appropriate for clients running in Dartium, DDC, and dart2js.
-void useSeltzerInTheBrowser() => setPlatform(const BrowserSeltzerHttp());
+void useSeltzerInTheBrowser() {
+  setPlatform(const BrowserSeltzerHttp());
+  setWebSocketProvider(() => new BrowserSeltzerWebSocket());
+}
 
 /// An implementation of [SeltzerHttp] that works within the browser.
 ///
@@ -43,4 +46,44 @@ class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
 
   @override
   String get payload => _request.responseText;
+}
+
+/// A [SeltzerWebSocket] implementation for the browser.
+class BrowserSeltzerWebSocket implements SeltzerWebSocket {
+  final StreamController<String> _onDataController =
+      new StreamController<String>.broadcast();
+
+  StreamSubscription _dataSubscription;
+  WebSocket _webSocket;
+
+  @override
+  Stream<String> get onData => _onDataController.stream;
+
+  @override
+  Future open(String url) async {
+    await close();
+    _webSocket = new WebSocket(url);
+    _dataSubscription = _webSocket.onMessage.listen((MessageEvent message) {
+      _onDataController.add(message.data.toString());
+    });
+    return _webSocket.onOpen.first.then((_) => null);
+  }
+
+  @override
+  Future close([int code, String reason]) async {
+    _dataSubscription?.cancel();
+    _webSocket?.close(code, reason);
+  }
+
+  @override
+  Future sendString(String data) async {
+    _ensureIsOpen();
+    _webSocket.sendString(data);
+  }
+
+  void _ensureIsOpen() {
+    if (_webSocket == null) {
+      throw new StateError("Socket is not open.");
+    }
+  }
 }

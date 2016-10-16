@@ -2,7 +2,8 @@
 library seltzer;
 
 // Re-export convenience functions that are platform independent.
-export 'package:seltzer/src/context.dart' show delete, get, patch, post, put;
+export 'package:seltzer/src/context.dart'
+    show delete, get, patch, post, put, createWebSocket;
 
 // Re-export common interfaces that might be referred to.
 export 'package:seltzer/src/interface.dart'
@@ -10,4 +11,6 @@ export 'package:seltzer/src/interface.dart'
         SeltzerHttp,
         SeltzerHttpRequest,
         SeltzerHttpResponse,
-        SeltzerHttpTransformer;
+        SeltzerHttpTransformer,
+        SeltzerWebSocket,
+        SeltzerWebSocketTransformer;
