@@ -3,6 +3,71 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:seltzer/src/context.dart';
 
+/// A WebSocket Object.
+///
+/// The socket must be opened before any data can be sent through it.  Clients
+/// should close the socket when they are finished listening to its [onData]
+/// stream.
+///
+/// Example Usage:
+///     var socket = new SeltzerWebSocket();
+///     await socket.open('ws://foo.com:9090');
+///     socket.onData.listen(print);
+///     await socket.sendString(stringData);
+///     await socket.close();
+abstract class SeltzerWebSocket {
+  /// Default constructor.
+  factory SeltzerWebSocket() => createWebSocket();
+
+  /// The stream of data received by this socket.
+  Stream<String> get onData;
+
+  /// Opens the socket and connects it to [url].
+  ///
+  /// [url] must use the scheme ws or wss.
+  Future open(String url);
+
+  /// Closes this socket's connection.
+  ///
+  /// Set the optional code and reason arguments to send close information to
+  /// the remote peer.
+  Future close([int code, String reason]);
+
+  /// Sends [data] to the remote peer.
+  Future sendString(String data);
+}
+
+/// An [SeltzerWebSocket] that delegates to an existing instance.
+///
+/// Suitable for wrapping existing implementation and overriding some details.
+class SeltzerWebSocketTransformer implements SeltzerWebSocket {
+  final SeltzerWebSocket _delegate;
+
+  /// Default constructor.
+  SeltzerWebSocketTransformer(this._delegate);
+
+  /// The stream of data received by this socket.
+  @override
+  Stream<String> get onData => _delegate.onData;
+
+  /// Opens the socket and connects it to [url].
+  ///
+  /// [url] must use the scheme ws or wss.
+  @override
+  Future open(String url) => _delegate.open(url);
+
+  /// Closes the websocket connection.
+  ///
+  /// Set the optional code and reason arguments to send close information to
+  /// the remote peer.
+  @override
+  Future close([int code, String reason]) => _delegate.close(code, reason);
+
+  /// Sends [data] to the remote peer.
+  @override
+  Future sendString(String data) => _delegate.sendString(data);
+}
+
 /// Elegant and rich cross-platform HTTP service.
 ///
 /// See `platform/browser.dart` and `platform/server.dart` for implementations.
@@ -78,6 +143,7 @@ abstract class PlatformSeltzerHttp implements SeltzerHttp {
 class SeltzerHttpTransformer implements SeltzerHttp {
   final SeltzerHttp _delegate;
 
+  /// Default constructor.
   SeltzerHttpTransformer(this._delegate);
 
   @override

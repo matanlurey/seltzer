@@ -11,7 +11,10 @@ export 'package:seltzer/seltzer.dart';
 /// Initializes `package:seltzer/seltzer.dart` to use [ServerSeltzerHttp].
 ///
 /// This is appropriate for clients running in the VM on the command line.
-void useSeltzerInTheServer() => setPlatform(const ServerSeltzerHttp());
+void useSeltzerInTheServer() {
+  setPlatform(const ServerSeltzerHttp());
+  setWebSocketProvider(() => new ServerSeltzerWebSocket());
+}
 
 /// An implementation of [SeltzerHttp] that works within the browser.
 ///
@@ -42,4 +45,41 @@ class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
   final String payload;
 
   _IOSeltzerHttpResponse(this.payload);
+}
+
+/// A [SeltzerWebSocket] implementation for the dart vm.
+class ServerSeltzerWebSocket implements SeltzerWebSocket {
+  final StreamController<String> _onDataController =
+      new StreamController<String>.broadcast();
+
+  StreamSubscription _dataSubscription;
+  WebSocket _webSocket;
+
+  @override
+  Stream<String> get onData => _onDataController.stream;
+
+  @override
+  Future open(String url) async {
+    await close();
+    _webSocket = await WebSocket.connect(url);
+    _dataSubscription = _webSocket.listen(_onDataController.add);
+  }
+
+  @override
+  Future close([int code, String reason]) async {
+    _dataSubscription?.cancel();
+    _webSocket?.close(code, reason);
+  }
+
+  @override
+  Future sendString(String data) async {
+    _ensureIsOpen();
+    _webSocket.add(data);
+  }
+
+  void _ensureIsOpen() {
+    if (_webSocket == null) {
+      throw new StateError("Socket is not open.");
+    }
+  }
 }

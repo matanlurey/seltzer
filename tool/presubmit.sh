@@ -27,11 +27,13 @@ echo "PASSED"
 set -e
 
 # Run a simple echo server, we use this to test most of our client code.
-echo "Running echo server..."
-dart bin/echo.dart & export ECHO_PID=$!
+echo "Running echo servers..."
+dart bin/http_echo.dart --port=9090 & export HTTP_ECHO_PID=$!
+dart bin/socket_echo.dart --port=9095 & export SOCKET_ECHO_PID=$!
 
 # Run all of our tests
 # If anything fails, we kill the ECHO_PID, otherwise kill at the end.
 echo "Running all tests..."
-pub run test -p "content-shell,vm" || kill $ECHO_PID
-kill $ECHO_PID
+pub run test -p "content-shell,vm" || kill $HTTP_ECHO_PID $SOCKET_ECHO_PID
+kill $HTTP_ECHO_PID $SOCKET_ECHO_PID
+
