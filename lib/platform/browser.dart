@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
+import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:seltzer/src/context.dart';
@@ -12,7 +14,7 @@ export 'package:seltzer/seltzer.dart';
 /// This is appropriate for clients running in Dartium, DDC, and dart2js.
 void useSeltzerInTheBrowser() {
   setPlatform(const BrowserSeltzerHttp());
-  setWebSocketProvider(() => new BrowserSeltzerWebSocket());
+  setWebSocketProvider((String url) => new BrowserSeltzerWebSocket(url));
 }
 
 /// An implementation of [SeltzerHttp] that works within the browser.
@@ -50,40 +52,81 @@ class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
 
 /// A [SeltzerWebSocket] implementation for the browser.
 class BrowserSeltzerWebSocket implements SeltzerWebSocket {
-  final StreamController<String> _onDataController =
-      new StreamController<String>.broadcast();
+  final Completer<Null> _onOpenCompleter = new Completer<Null>();
+  final Completer<Null> _onCloseCompleter = new Completer<Null>();
+  final StreamController<SeltzerMessage> _onMessageController =
+      new StreamController<SeltzerMessage>.broadcast();
 
   StreamSubscription _dataSubscription;
   WebSocket _webSocket;
 
-  @override
-  Stream<String> get onData => _onDataController.stream;
-
-  @override
-  Future open(String url) async {
-    await close();
+  /// Creates a new browser web sock connected to the remote peer at [url].
+  BrowserSeltzerWebSocket(String url) {
     _webSocket = new WebSocket(url);
-    _dataSubscription = _webSocket.onMessage.listen((MessageEvent message) {
-      _onDataController.add(message.data.toString());
+    _dataSubscription = _webSocket.onMessage.listen((MessageEvent event) async {
+      _onMessageController.add(new _BrowserSeltzerMessage(event.data));
     });
-    return _webSocket.onOpen.first.then((_) => null);
+    _webSocket.onOpen.first.then((_) {
+      _onOpenCompleter.complete();
+    });
+    _webSocket.onClose.first.then((_) {
+      _onCloseCompleter.complete();
+    });
   }
 
   @override
-  Future close([int code, String reason]) async {
-    _dataSubscription?.cancel();
-    _webSocket?.close(code, reason);
+  Stream<SeltzerMessage> get onMessage => _onMessageController.stream;
+
+  @override
+  Stream<Null> get onOpen => _onOpenCompleter.future.asStream();
+
+  @override
+  Stream<Null> get onClose => _onCloseCompleter.future.asStream();
+
+  @override
+  Future<Null> close([int code, String reason]) async {
+    _errorIfClosed();
+    _dataSubscription.cancel();
+    _webSocket.close(code, reason);
   }
 
   @override
-  Future sendString(String data) async {
-    _ensureIsOpen();
+  Future<Null> sendString(String data) async {
+    _errorIfClosed();
     _webSocket.sendString(data);
   }
 
-  void _ensureIsOpen() {
-    if (_webSocket == null) {
-      throw new StateError("Socket is not open.");
+  @override
+  Future<Null> sendBytes(ByteBuffer data) async {
+    _errorIfClosed();
+    _webSocket.sendTypedData(data.asInt8List());
+  }
+
+  void _errorIfClosed() {
+    if (_webSocket == null || _webSocket.readyState != WebSocket.OPEN) {
+      throw new StateError("Socket is closed");
     }
   }
+}
+
+class _BrowserSeltzerMessage implements SeltzerMessage {
+  final Object _payload;
+
+  _BrowserSeltzerMessage(this._payload);
+
+  @override
+  Future<ByteBuffer> readAsArrayBuffer() async {
+    if (_payload is String) {
+      return new Uint8List.fromList(new Utf8Encoder().convert(_payload)).buffer;
+    } else {
+      // _payload must be a Blob.
+      var fileReader = new FileReader()..readAsArrayBuffer(_payload);
+      await fileReader.onLoadEnd.first;
+      TypedData result = fileReader.result;
+      return result.buffer;
+    }
+  }
+
+  @override
+  Future<String> readAsString() async => _payload.toString();
 }
