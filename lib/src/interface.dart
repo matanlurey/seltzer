@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:seltzer/src/context.dart';
@@ -6,35 +7,46 @@ import 'package:seltzer/src/context.dart';
 /// A WebSocket Object.
 ///
 /// The socket must be opened before any data can be sent through it.  Clients
-/// should close the socket when they are finished listening to its [onData]
+/// should close the socket when they are finished listening to its [onMessage]
 /// stream.
 ///
 /// Example Usage:
-///     var socket = new SeltzerWebSocket();
-///     await socket.open('ws://foo.com:9090');
-///     socket.onData.listen(print);
+///     var socket = new SeltzerWebSocket('ws://foo.com:9090');
+///     socket.onMessage.listen(print);
 ///     await socket.sendString(stringData);
 ///     await socket.close();
 abstract class SeltzerWebSocket {
   /// Default constructor.
-  factory SeltzerWebSocket() => createWebSocket();
+  factory SeltzerWebSocket(String url) => createWebSocket(url);
 
   /// The stream of data received by this socket.
-  Stream<String> get onData;
+  Stream<SeltzerMessage> get onMessage;
 
-  /// Opens the socket and connects it to [url].
+  /// An event stream that fires when the socket is ready to read/write.
   ///
-  /// [url] must use the scheme ws or wss.
-  Future open(String url);
+  /// The default implementation only fires a single event.
+  Stream<Null> get onOpen;
 
-  /// Closes this socket's connection.
+  /// An event stream that fires when the socket is closed.
+  ///
+  /// The default implementation only fires a single event.
+  Stream<Null> get onClose;
+
+  /// Initiates closing this socket's connection.
+  ///
+  /// The returned future completes when all open close messages have been sent
+  /// and all subscriptions have cancelled.  To determine when the socket itself
+  /// truly closes, subscribe to this socket's [onClose] stream.
   ///
   /// Set the optional code and reason arguments to send close information to
   /// the remote peer.
-  Future close([int code, String reason]);
+  Future<Null> close([int code, String reason]);
 
   /// Sends [data] to the remote peer.
-  Future sendString(String data);
+  Future<Null> sendString(String data);
+
+  /// Sends [data] to the remote peer.
+  Future<Null> sendBytes(ByteBuffer data);
 }
 
 /// An [SeltzerWebSocket] that delegates to an existing instance.
@@ -46,26 +58,24 @@ class SeltzerWebSocketTransformer implements SeltzerWebSocket {
   /// Default constructor.
   SeltzerWebSocketTransformer(this._delegate);
 
-  /// The stream of data received by this socket.
   @override
-  Stream<String> get onData => _delegate.onData;
+  Stream<SeltzerMessage> get onMessage => _delegate.onMessage;
 
-  /// Opens the socket and connects it to [url].
-  ///
-  /// [url] must use the scheme ws or wss.
   @override
-  Future open(String url) => _delegate.open(url);
+  Stream<Null> get onOpen => _delegate.onOpen;
 
-  /// Closes the websocket connection.
-  ///
-  /// Set the optional code and reason arguments to send close information to
-  /// the remote peer.
   @override
-  Future close([int code, String reason]) => _delegate.close(code, reason);
+  Stream<Null> get onClose => _delegate.onClose;
 
-  /// Sends [data] to the remote peer.
   @override
-  Future sendString(String data) => _delegate.sendString(data);
+  Future<Null> close([int code, String reason]) =>
+      _delegate.close(code, reason);
+
+  @override
+  Future<Null> sendString(String data) => _delegate.sendString(data);
+
+  @override
+  Future<Null> sendBytes(ByteBuffer data) => _delegate.sendBytes(data);
 }
 
 /// Elegant and rich cross-platform HTTP service.
@@ -241,4 +251,13 @@ class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
 abstract class SeltzerHttpResponse {
   /// Response payload.
   String get payload;
+}
+
+/// A message received by a [SeltzerWebSocket].
+abstract class SeltzerMessage {
+  /// Returns a [Future<ByteBuffer>] that completes with this message's payload.
+  Future<ByteBuffer> readAsArrayBuffer();
+
+  /// Returns a [Future<String>] that completes with this message's payload.
+  Future<String> readAsString();
 }

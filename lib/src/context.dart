@@ -10,7 +10,7 @@ import 'package:seltzer/src/interface.dart';
 SeltzerHttp _platform;
 
 // A Provider of [SeltzerWebSocket] instances.
-typedef SeltzerWebSocket _WebSocketProvider();
+typedef SeltzerWebSocket _WebSocketProvider(String url);
 
 // The current configured _WebSocketProvider.
 
@@ -46,7 +46,7 @@ void setWebSocketProvider(_WebSocketProvider provider) {
 }
 
 /// Internal method
-SeltzerWebSocket createWebSocket() => _createWebSocket();
+SeltzerWebSocket createWebSocket(String url) => _createWebSocket(url);
 
 /// Internal method: Returns the top-level instance.
 SeltzerHttp getPlatform() => _seltzer;
