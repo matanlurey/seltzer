@@ -1,5 +1,5 @@
 name: seltzer
-version: 0.0.1
+version: 0.0.2
 description: >
   An elegant and rich cross-platform HTTP library for Dart.
 
@@ -11,6 +11,7 @@ description: >
   Dart (https://github.com/google/streamy-dart).
 authors:
   - Matan Lurey <matanl@google.com>
+  - Kendal Harland <kjharland@google.com>
 homepage: https://github.com/matanlurey/seltzer
 dependencies:
   meta: ">=1.0.4 <2.0.0"
