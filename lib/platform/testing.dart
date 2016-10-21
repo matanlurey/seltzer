@@ -37,25 +37,28 @@ class CannedSeltzerHttp extends PlatformSeltzerHttp {
     if (response == null) {
       throw new StateError('No expectation found for $method $url');
     }
-    return new Future<SeltzerHttpResponse>.value(
-      new _FakeHttpResponse(response),
-    );
+    return new Future<SeltzerHttpResponse>.value(response);
   }
 
-  /// Adds an expctation for [method] [url] [headers].
+  /// Adds an expctation for [method] [url] [requestHeaders].
   void expect(
     String method,
     String url, {
-    Map<String, String> headers: const {},
+    Map<String, String> requestHeaders: const {},
     String response: '',
+    Map<String, String> responseHeaders: const {},
   }) {
-    _expectations[_getKey(method, url, headers)] = response;
+    _expectations[_getKey(method, url, requestHeaders)] =
+        new _FakeHttpResponse(response, responseHeaders);
   }
 }
 
 class _FakeHttpResponse implements SeltzerHttpResponse {
   @override
+  final Map<String, String> headers;
+
+  @override
   final String payload;
 
-  _FakeHttpResponse(this.payload);
+  _FakeHttpResponse(this.payload, this.headers);
 }

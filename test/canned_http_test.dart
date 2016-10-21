@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('should fail if an expectation is missing', () {
-    expect(() => new CannedSeltzerHttp().get('/404').send(), throwsStateError); 
+    expect(() => new CannedSeltzerHttp().get('/404').send(), throwsStateError);
   });
 
   test('should return the canned response', () async {

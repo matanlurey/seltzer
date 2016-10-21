@@ -37,15 +37,18 @@ class ServerSeltzerHttp extends PlatformSeltzerHttp {
     headers.forEach(request.headers.add);
     var response = await request.close();
     var payload = await UTF8.decodeStream(response);
-    return new _IOSeltzerHttpResponse(payload);
+    return new _IOSeltzerHttpResponse(payload, response.headers);
   }
 }
 
 class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
   @override
+  final Map<String, String> headers;
+
+  @override
   final String payload;
 
-  _IOSeltzerHttpResponse(this.payload);
+  _IOSeltzerHttpResponse(this.payload, this.headers);
 }
 
 /// A [SeltzerWebSocket] implementation for the dart vm.
