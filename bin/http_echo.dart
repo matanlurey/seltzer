@@ -32,10 +32,11 @@ Future main(List<String> args) async {
     if (request.headers['Authorization'] != null) {
       headers['Authorization'] = request.headers['Authorization'].first;
     }
+    final requestData = await UTF8.decodeStream(request);
     final payload = <String, dynamic>{
       'method': request.method,
       'url': request.uri.toString(),
-      'data': await UTF8.decodeStream(request)
+      'data': requestData?.isNotEmpty == true ? JSON.decode(requestData) : '',
     };
     if (headers.isNotEmpty) {
       payload['headers'] = headers;

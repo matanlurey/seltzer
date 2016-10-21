@@ -36,7 +36,9 @@ class ServerSeltzerHttp extends PlatformSeltzerHttp {
   }) async {
     var request = await new HttpClient().openUrl(method, Uri.parse(url));
     headers.forEach(request.headers.add);
-    request.add(UTF8.encode(payload));
+    if (payload != null) {
+      request.add(UTF8.encode(payload));
+    }
     var response = await request.close();
     var responsePayload = await UTF8.decodeStream(response);
     var responseHeaders = <String, String>{};
