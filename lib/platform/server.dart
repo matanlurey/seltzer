@@ -13,8 +13,8 @@ export 'package:seltzer/seltzer.dart';
 ///
 /// This is appropriate for clients running in the VM on the command line.
 void useSeltzerInTheServer() {
-  setPlatform(const ServerSeltzerHttp());
-  setWebSocketProvider((String url) => new ServerSeltzerWebSocket(url));
+  setHttpPlatform(const ServerSeltzerHttp());
+  setSocketPlatform(ServerSeltzerWebSocket.connect);
 }
 
 /// An implementation of [SeltzerHttp] that works within the browser.
@@ -50,47 +50,45 @@ class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
 
 /// A [SeltzerWebSocket] implementation for the dart vm.
 class ServerSeltzerWebSocket implements SeltzerWebSocket {
-  final Completer<Null> _onOpenCompleter = new Completer<Null>();
-  final Completer<Null> _onCloseCompleter = new Completer<Null>();
-  final StreamController<SeltzerMessage> _onMessageController =
-      new StreamController<SeltzerMessage>.broadcast();
+  /// Connects via web socket to [url].
+  static Future<ServerSeltzerWebSocket> connect(String url) async {
+    return new ServerSeltzerWebSocket._(
+      await WebSocket.connect(url),
+      new Completer<Null>.sync(),
+    );
+  }
 
-  /// This is needed because dart:io WebSockets don't offer a reliable method
-  /// for determining when a socket has closed. With this implementation,
-  /// [onClose] will emit immediately after calling [close] while the underlying
-  /// web socket closes its actual connection in the background.
-  bool _isOpen = false;
-  StreamSubscription _messageSubscription;
-  WebSocket _webSocket;
+  final Completer<Null> _onCloseCompleter;
+  final WebSocket _webSocket;
 
-  /// Creates a new server web sock connected to the remote peer at [url].
-  ServerSeltzerWebSocket(String url) {
-    WebSocket.connect(url).then((WebSocket webSocket) {
-      _webSocket = webSocket;
-      _messageSubscription = _webSocket.listen((payload) {
-        _onMessageController.add(new _ServerSeltzerMessage(payload));
-      });
-      _isOpen = true;
-      _onOpenCompleter.complete();
+  ServerSeltzerWebSocket._(
+    WebSocket webSocket,
+    Completer<Null> onCloseCompleter,
+  )
+      : onMessage = webSocket
+            .asBroadcastStream()
+            .map((p) => new _ServerSeltzerMessage(p)),
+        _webSocket = webSocket,
+        _onCloseCompleter = onCloseCompleter {
+    onMessage.isEmpty.then((_) {
+      if (webSocket.readyState == WebSocket.CLOSED) {
+        onCloseCompleter.complete();
+      } else {
+        onMessage.last.then((_) => onCloseCompleter.complete());
+      }
     });
   }
 
   @override
-  Stream<SeltzerMessage> get onMessage => _onMessageController.stream;
+  final Stream<SeltzerMessage> onMessage;
 
   @override
-  Stream<Null> get onOpen => _onOpenCompleter.future.asStream();
+  Future<Null> get onClose => _onCloseCompleter.future;
 
   @override
-  Stream<Null> get onClose => _onCloseCompleter.future.asStream();
-
-  @override
-  Future<Null> close([int code, String reason]) async {
+  Future<Null> close({int code, String reason}) async {
     _errorIfClosed();
-    _isOpen = false;
-    _messageSubscription.cancel();
     _webSocket.close(code, reason);
-    _onCloseCompleter.complete();
   }
 
   @override
@@ -106,8 +104,8 @@ class ServerSeltzerWebSocket implements SeltzerWebSocket {
   }
 
   void _errorIfClosed() {
-    if (!_isOpen) {
-      throw new StateError("Socket is closed");
+    if (_webSocket.readyState != WebSocket.OPEN) {
+      throw new StateError('Socket is closed.');
     }
   }
 }

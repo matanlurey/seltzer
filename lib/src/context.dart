@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:seltzer/src/interface.dart';
 
 // The currently configured implementation of Seltzer.
@@ -9,14 +11,11 @@ import 'package:seltzer/src/interface.dart';
 // Once we have configurable import support then we can deprecate needing this.
 SeltzerHttp _platform;
 
-// A Provider of [SeltzerWebSocket] instances.
-typedef SeltzerWebSocket _WebSocketProvider(String url);
-
 // The current configured _WebSocketProvider.
-
-// As with the getter _platform, users are expected to use a configuration
+//
+// As with the getter `_platform`, users are expected to use a configuration
 // method to intialize this provider.
-_WebSocketProvider _createWebSocket;
+SeltzerWebSocketProvider _platformSocket;
 
 const _platformAlreadySetError = 'Platform already initialized. In most` '
     'applications, you need only to configure the "useSeltzerInTheX" platform '
@@ -24,7 +23,7 @@ const _platformAlreadySetError = 'Platform already initialized. In most` '
     'bugs.';
 
 /// Internal method: Initializes the top-level methods to use [platform].
-void setPlatform(SeltzerHttp platform) {
+void setHttpPlatform(SeltzerHttp platform) {
   assert(() {
     if (_platform != null) {
       throw new StateError(_platformAlreadySetError);
@@ -35,18 +34,15 @@ void setPlatform(SeltzerHttp platform) {
 }
 
 /// Internal method: Sets the callback for creating [SeltzerWebSocket]s.
-void setWebSocketProvider(_WebSocketProvider provider) {
+void setSocketPlatform(SeltzerWebSocketProvider provider) {
   assert(() {
-    if (_createWebSocket != null) {
+    if (_platformSocket != null) {
       throw new StateError(_platformAlreadySetError);
     }
     return true;
   });
-  _createWebSocket = provider;
+  _platformSocket = provider;
 }
-
-/// Internal method
-SeltzerWebSocket createWebSocket(String url) => _createWebSocket(url);
 
 /// Internal method: Returns the top-level instance.
 SeltzerHttp getPlatform() => _seltzer;
@@ -67,17 +63,32 @@ SeltzerHttp get _seltzer {
   return _platform;
 }
 
+/// Connects to a [web socket](https://tools.ietf.org/html/rfc6455) at [url].
+///
+/// Uses the currently configured platform configuration.
+Future<SeltzerWebSocket> connect(String url) => _platformSocket(url);
+
+/// Creates a `DELETE` HTTP request to [url].
+///
 /// See [SeltzerHttp.delete].
 SeltzerHttpRequest delete(String url) => _seltzer.delete(url);
 
+/// Creates a `GET` HTTP request to [url].
+///
 /// See [SeltzerHttp.get].
 SeltzerHttpRequest get(String url) => _seltzer.get(url);
 
+/// Creates a `PATCH` HTTP request to [url].
+///
 /// See [SeltzerHttp.patch].
 SeltzerHttpRequest patch(String url) => _seltzer.patch(url);
 
+/// Creates a `POST` HTTP request to [url].
+///
 /// See [SeltzerHttp.post].
 SeltzerHttpRequest post(String url) => _seltzer.post(url);
 
+/// Creates a `PUT` HTTP request to [url].
+///
 /// See [SeltzerHttp.put].
 SeltzerHttpRequest put(String url) => _seltzer.put(url);
