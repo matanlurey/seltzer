@@ -23,9 +23,9 @@ const _platformAlreadySetError = 'Platform already initialized. In most` '
     'bugs.';
 
 /// Internal method: Initializes the top-level methods to use [platform].
-void setHttpPlatform(SeltzerHttp platform) {
+void setHttpPlatform(SeltzerHttp platform, [bool allowOverride = false]) {
   assert(() {
-    if (_platform != null) {
+    if (!allowOverride && _platform != null) {
       throw new StateError(_platformAlreadySetError);
     }
     return true;
