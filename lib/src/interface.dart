@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
@@ -110,6 +111,7 @@ abstract class PlatformSeltzerHttp implements SeltzerHttp {
     String method,
     String url, {
     Map<String, String> headers,
+    String payload,
   });
 
   @override
@@ -195,6 +197,11 @@ abstract class SeltzerHttpRequest {
 
   /// Makes the HTTP request, and returns a [Stream] of results.
   Stream<SeltzerHttpResponse> send();
+
+  /// Makes the HTTP request, sending [toJsonable] as a JSON string.
+  ///
+  /// Returns a [Stream] of results.
+  Stream<SeltzerHttpResponse> sendJson(toJsonable);
 }
 
 /// A partial implementation of [SeltzerHttpRequest] without platform specifics.
@@ -225,6 +232,20 @@ class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
           method,
           url,
           headers: headers,
+        )
+        .asStream();
+  }
+
+  @override
+  Stream<SeltzerHttpResponse> sendJson(toJsonable) {
+    var headers = new Map<String, String>.from(this.headers);
+    headers.putIfAbsent('Content-Type', () => 'Application/Json');
+    return _executor
+        .execute(
+          method,
+          url,
+          headers: headers,
+          payload: JSON.encode(toJsonable),
         )
         .asStream();
   }

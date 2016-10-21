@@ -32,11 +32,13 @@ class BrowserSeltzerHttp extends PlatformSeltzerHttp {
     String method,
     String url, {
     Map<String, String> headers: const {},
+    String payload,
   }) async {
     return new _HtmlSeltzerHttpResponse(await HttpRequest.request(
       url,
       method: method,
       requestHeaders: headers,
+      sendData: payload,
     ));
   }
 }

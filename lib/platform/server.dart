@@ -32,16 +32,18 @@ class ServerSeltzerHttp extends PlatformSeltzerHttp {
     String method,
     String url, {
     Map<String, String> headers,
+    String payload,
   }) async {
     var request = await new HttpClient().openUrl(method, Uri.parse(url));
     headers.forEach(request.headers.add);
+    request.add(UTF8.encode(payload));
     var response = await request.close();
-    var payload = await UTF8.decodeStream(response);
+    var responsePayload = await UTF8.decodeStream(response);
     var responseHeaders = <String, String>{};
     response.headers
         .forEach((name, value) => responseHeaders[name] = value.join(' '));
     return new _IOSeltzerHttpResponse(
-      payload,
+      responsePayload,
       new Map<String, String>.unmodifiable(responseHeaders),
     );
   }

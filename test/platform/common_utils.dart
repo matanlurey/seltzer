@@ -64,4 +64,17 @@ void runPlatformTests() {
       'data': '',
     });
   });
+
+  test('should send JSON data', () async {
+    var response = await post('$_echoUrl/action').sendJson({
+      'hello': 'world',
+    }).first;
+    expect(JSON.decode(response.payload), {
+      'method': 'POST',
+      'url': '/action',
+      'data': {
+        'hello': 'world',
+      },
+    });
+  });
 }
