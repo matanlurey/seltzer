@@ -244,6 +244,9 @@ class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
 
 /// An HTTP response object.
 abstract class SeltzerHttpResponse {
+  /// Response headers.
+  Map<String, String> get headers;
+
   /// Response payload.
   String get payload;
 }

@@ -47,6 +47,9 @@ class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
   _HtmlSeltzerHttpResponse(this._request);
 
   @override
+  Map<String, String> get headers => _request.responseHeaders;
+
+  @override
   String get payload => _request.responseText;
 }
 
