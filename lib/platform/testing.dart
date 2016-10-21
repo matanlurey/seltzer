@@ -25,7 +25,8 @@ class CannedSeltzerHttp extends PlatformSeltzerHttp {
     return '$method|$url|$headers';
   }
 
-  final Map<String, String> _expectations = <String, String>{};
+  final Map<String, _FakeHttpResponse> _expectations =
+      <String, _FakeHttpResponse>{};
 
   @override
   Future<SeltzerHttpResponse> execute(
