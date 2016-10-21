@@ -9,7 +9,7 @@ An elegant and rich cross-platform HTTP library for Dart.
 You can use Seltzer as an object-oriented HTTP service _or_ simply use
 top-level convenience methods like `get` and `post` directly.
 
-### Using the service
+### Using HTTP the service
 
 If you are using Seltzer with dependency injection:
 
@@ -54,5 +54,31 @@ void main() {
   seltzer.get('some/url.json').send().first.then((response) {
     print('Retrieved: ${response.payload}');
   });
+}
+```
+
+### Using the WebSocket service
+
+```dart
+import 'dart:async';
+
+import 'package:seltzer/seltzer.dart';
+import 'package:seltzer/platform/server.dart';
+
+void main() {
+  var service = new MyMessageService(createWebSocket('ws://127.0.0.1'));
+  service.sendMessage('Hello World!');
+}
+
+class MyMessageService {
+  final SeltzerWebSocket _webSocket;
+   
+  MyMessageService(this._webSocket);
+  
+  // Uses a SeltzerWebSocket to send a string message to a peer.
+  //
+  // This means if we are in the browser or the server we can expect
+  // our WebSocket to work about the same.
+  Future<Null> sendMessage(String message) => _webSocket.sendString(message);
 }
 ```
