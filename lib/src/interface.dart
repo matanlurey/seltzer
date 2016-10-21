@@ -2,51 +2,49 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
-import 'package:seltzer/src/context.dart';
+import 'package:seltzer/src/context.dart' as platform;
 
-/// A WebSocket Object.
+/// Returns a connected [SeltzerWebSocket] to [url].
+typedef Future<SeltzerWebSocket> SeltzerWebSocketProvider(String url);
+
+/// A cross-platform [web socket](https://tools.ietf.org/html/rfc6455).
 ///
 /// The socket must be opened before any data can be sent through it.  Clients
 /// should close the socket when they are finished listening to its [onMessage]
 /// stream.
 ///
-/// Example Usage:
-///     var socket = new SeltzerWebSocket('ws://foo.com:9090');
+/// ## Example Usage:
+///     var socket = await SeltzerWebSocket.connect('ws://foo.com:9090');
 ///     socket.onMessage.listen(print);
 ///     await socket.sendString(stringData);
 ///     await socket.close();
 abstract class SeltzerWebSocket {
-  /// Default constructor.
-  factory SeltzerWebSocket(String url) => createWebSocket(url);
+  /// Connects to a web socket server at [url].
+  ///
+  /// Returns a [Future] that completes upon connecting.
+  static Future<SeltzerWebSocket> connect(String url) => platform.connect(url);
 
   /// The stream of data received by this socket.
   Stream<SeltzerMessage> get onMessage;
 
-  /// An event stream that fires when the socket is ready to read/write.
-  ///
-  /// The default implementation only fires a single event.
-  Stream<Null> get onOpen;
-
-  /// An event stream that fires when the socket is closed.
-  ///
-  /// The default implementation only fires a single event.
-  Stream<Null> get onClose;
+  /// An future that completes when the socket is closed.
+  Future<Null> get onClose;
 
   /// Initiates closing this socket's connection.
   ///
   /// The returned future completes when all open close messages have been sent
   /// and all subscriptions have cancelled.  To determine when the socket itself
-  /// truly closes, subscribe to this socket's [onClose] stream.
+  /// truly closes, wait until [onClose] completes.
   ///
-  /// Set the optional code and reason arguments to send close information to
-  /// the remote peer.
-  Future<Null> close([int code, String reason]);
+  /// Set the optional [code] and [reason] arguments to send close information
+  /// to the remote peer.
+  Future<Null> close({int code, String reason});
 
-  /// Sends [data] to the remote peer.
-  Future<Null> sendString(String data);
-
-  /// Sends [data] to the remote peer.
+  /// Sends bytes [data] to the remote peer.
   Future<Null> sendBytes(ByteBuffer data);
+
+  /// Sends string [data] to the remote peer.
+  Future<Null> sendString(String data);
 }
 
 /// An [SeltzerWebSocket] that delegates to an existing instance.
@@ -62,14 +60,11 @@ class SeltzerWebSocketTransformer implements SeltzerWebSocket {
   Stream<SeltzerMessage> get onMessage => _delegate.onMessage;
 
   @override
-  Stream<Null> get onOpen => _delegate.onOpen;
+  Future<Null> get onClose => _delegate.onClose;
 
   @override
-  Stream<Null> get onClose => _delegate.onClose;
-
-  @override
-  Future<Null> close([int code, String reason]) =>
-      _delegate.close(code, reason);
+  Future<Null> close({int code, String reason}) =>
+      _delegate.close(code: code, reason: reason);
 
   @override
   Future<Null> sendString(String data) => _delegate.sendString(data);
@@ -85,7 +80,7 @@ abstract class SeltzerHttp {
   /// Returns the platform-initialized [SeltzerHttp] instance.
   ///
   /// Throws [StateError] if an implementation was not yet chosen.
-  factory SeltzerHttp() => getPlatform();
+  factory SeltzerHttp() => platform.getPlatform();
 
   /// Create a request to DELETE from [url].
   SeltzerHttpRequest delete(String url);

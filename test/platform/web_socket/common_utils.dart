@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:seltzer/seltzer.dart';
@@ -11,13 +12,7 @@ void runPlatformTests() {
     SeltzerWebSocket webSocket;
 
     setUp(() async {
-      webSocket = createWebSocket(_echoUrl);
-    });
-
-    tearDown(() => webSocket?.close());
-
-    test('onOpen should emit single event when the stream opens.', () async {
-      expect(webSocket.onOpen.single, completion(null));
+      webSocket = await connect(_echoUrl);
     });
 
     group('onClose', () {
@@ -27,25 +22,22 @@ void runPlatformTests() {
       });
 
       test('should emit a single event when the stream closes.', () async {
-        await webSocket.onOpen.single;
         webSocket.close();
-        expect(webSocket.onClose.single, completion(null));
+        expect(webSocket.onClose, completion(null));
       });
 
       test('should throw a StateError if called after the socket closes',
           () async {
-        await webSocket.onOpen.single;
-        webSocket.close();
-        await webSocket.onClose.single;
+        await webSocket.close();
+        await webSocket.onClose;
         expect(webSocket.close(), throwsStateError);
       });
     });
 
     test('should throw a StateError if data is sent after the socket closes',
         () async {
-      await webSocket.onOpen.single;
-      webSocket.close();
-      await webSocket.onClose.single;
+      await webSocket.close();
+      await webSocket.onClose;
       expect(webSocket.sendString('hello-world'), throwsStateError);
       expect(
           webSocket.sendBytes(new Uint8List(07734).buffer), throwsStateError);
@@ -55,22 +47,26 @@ void runPlatformTests() {
 
     test('sendString should send string data.', () async {
       var payload = 'string data';
-      await webSocket.onOpen.single;
-      webSocket.onMessage.listen(expectAsync((message) {
+      var completer = new Completer();
+      webSocket.onMessage.listen(((message) {
         expect(message.readAsString(), completion(payload));
-      }, count: 1));
+        completer.complete();
+      }));
       webSocket.sendString(payload);
+      await completer.future;
     });
 
     test('sendBytes should send byte data.', () async {
       var payload = new Int8List.fromList([1, 2]);
-      await webSocket.onOpen.single;
-      webSocket.onMessage.listen(expectAsync((message) {
+      var completer = new Completer();
+      webSocket.onMessage.listen((message) {
         message.readAsArrayBuffer().then((ByteBuffer buffer) {
           expect(buffer.asInt8List(), payload);
+          completer.complete();
         });
-      }, count: 1));
+      });
       webSocket.sendBytes(payload.buffer);
+      await completer.future;
     });
   });
 }

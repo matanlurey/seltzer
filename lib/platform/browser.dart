@@ -13,8 +13,8 @@ export 'package:seltzer/seltzer.dart';
 ///
 /// This is appropriate for clients running in Dartium, DDC, and dart2js.
 void useSeltzerInTheBrowser() {
-  setPlatform(const BrowserSeltzerHttp());
-  setWebSocketProvider((String url) => new BrowserSeltzerWebSocket(url));
+  setHttpPlatform(const BrowserSeltzerHttp());
+  setSocketPlatform(BrowserSeltzerWebSocket.connect);
 }
 
 /// An implementation of [SeltzerHttp] that works within the browser.
@@ -52,41 +52,30 @@ class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
 
 /// A [SeltzerWebSocket] implementation for the browser.
 class BrowserSeltzerWebSocket implements SeltzerWebSocket {
-  final Completer<Null> _onOpenCompleter = new Completer<Null>();
-  final Completer<Null> _onCloseCompleter = new Completer<Null>();
-  final StreamController<SeltzerMessage> _onMessageController =
-      new StreamController<SeltzerMessage>.broadcast();
+  /// Connects via web socket to [url].
+  static Future<BrowserSeltzerWebSocket> connect(String url) async {
+    final socket = new WebSocket(url);
+    await socket.onOpen.first;
+    return new BrowserSeltzerWebSocket._(
+      socket,
+    );
+  }
 
-  StreamSubscription _dataSubscription;
-  WebSocket _webSocket;
+  final WebSocket _webSocket;
 
-  /// Creates a new browser web sock connected to the remote peer at [url].
-  BrowserSeltzerWebSocket(String url) {
-    _webSocket = new WebSocket(url);
-    _dataSubscription = _webSocket.onMessage.listen((MessageEvent event) async {
-      _onMessageController.add(new _BrowserSeltzerMessage(event.data));
-    });
-    _webSocket.onOpen.first.then((_) {
-      _onOpenCompleter.complete();
-    });
-    _webSocket.onClose.first.then((_) {
-      _onCloseCompleter.complete();
-    });
+  BrowserSeltzerWebSocket._(this._webSocket);
+
+  @override
+  Future<Null> get onClose => _webSocket.onClose.first.then((_) => null);
+
+  @override
+  Stream<SeltzerMessage> get onMessage {
+    return _webSocket.onMessage.map((e) => new _BrowserSeltzerMessage(e.data));
   }
 
   @override
-  Stream<SeltzerMessage> get onMessage => _onMessageController.stream;
-
-  @override
-  Stream<Null> get onOpen => _onOpenCompleter.future.asStream();
-
-  @override
-  Stream<Null> get onClose => _onCloseCompleter.future.asStream();
-
-  @override
-  Future<Null> close([int code, String reason]) async {
+  Future<Null> close({int code, String reason}) async {
     _errorIfClosed();
-    _dataSubscription.cancel();
     _webSocket.close(code, reason);
   }
 
@@ -103,8 +92,8 @@ class BrowserSeltzerWebSocket implements SeltzerWebSocket {
   }
 
   void _errorIfClosed() {
-    if (_webSocket == null || _webSocket.readyState != WebSocket.OPEN) {
-      throw new StateError("Socket is closed");
+    if (_webSocket?.readyState != WebSocket.OPEN) {
+      throw new StateError('Socket is closed.');
     }
   }
 }
