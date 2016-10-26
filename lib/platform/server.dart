@@ -83,7 +83,7 @@ class ServerSeltzerWebSocket implements SeltzerWebSocket {
       if (webSocket.readyState == WebSocket.CLOSED) {
         onCloseCompleter.complete();
       } else {
-        onMessage.last.then((_) => onCloseCompleter.complete());
+        webSocket.done.then((_) => onCloseCompleter.complete());
       }
     });
   }
