@@ -23,7 +23,7 @@ void runSocketTests() {
 
       test('should emit a single event when the stream closes.', () async {
         webSocket.close();
-        expect(webSocket.onClose, completion(null));
+        expect(webSocket.onClose, completion(isNotNull));
       });
 
       test('should throw a StateError if called after the socket closes',

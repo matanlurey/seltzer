@@ -71,8 +71,12 @@ class BrowserSeltzerWebSocket implements SeltzerWebSocket {
   BrowserSeltzerWebSocket._(this._webSocket);
 
   @override
-  Future<Null> get onClose async {
-    await _webSocket.onClose.first;
+  Future<SeltzerSocketClosedEvent> get onClose async {
+    final event = await _webSocket.onClose.first;
+    return new SeltzerSocketClosedEvent(
+      event.code,
+      event.reason,
+    );
   }
 
   @override

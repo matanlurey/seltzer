@@ -17,10 +17,10 @@ If you are using Seltzer with dependency injection:
 import 'dart:async';
 
 import 'package:seltzer/seltzer.dart';
-import 'package:seltzer/platform/server.dart';
+import 'package:seltzer/platform/vm.dart';
 
 void main() {
-  new MyTwitterService(new ServerSeltzerHttp()).tweet('Hello World!');
+  new MyTwitterService(const VmSeltzerHttp()).tweet('Hello World!');
 }
 
 class MyTwitterService {
@@ -30,7 +30,7 @@ class MyTwitterService {
   
   // Uses the SeltzerHttp service to send a tweet.
   //
-  // This means if we are in the browser or the server we can expect
+  // This means if we are in the browser or the VM we can expect
   // our http service to work about the same.
   Future<Null> tweet(String message) => ...
 }
@@ -63,10 +63,10 @@ void main() {
 import 'dart:async';
 
 import 'package:seltzer/seltzer.dart';
-import 'package:seltzer/platform/server.dart';
+import 'package:seltzer/platform/vm.dart';
 
 void main() {
-  var service = new MyMessageService(createWebSocket('ws://127.0.0.1'));
+  var service = new MyMessageService(connect('ws://127.0.0.1'));
   service.sendMessage('Hello World!');
 }
 

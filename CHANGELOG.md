@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3-alpha
+
+- Added `SeltzerSocketClosedEvent` with information why close occurred
+- Rename the `Server` implementations to `Vm` since they work on Flutter
+
 ## 0.2.2-alpha
 
 - Consolidated interfaces of `SeltzerMessage` and `SeltzerHttpResponse`
