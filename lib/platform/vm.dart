@@ -9,23 +9,23 @@ import 'package:seltzer/src/interface.dart';
 
 export 'package:seltzer/seltzer.dart';
 
-/// Initializes `package:seltzer/seltzer.dart` to use [ServerSeltzerHttp].
+/// Initializes `package:seltzer/seltzer.dart` to use [VmSeltzerHttp].
 ///
 /// This is appropriate for clients running in the VM on the command line.
-void useSeltzerInTheServer() {
-  setHttpPlatform(const ServerSeltzerHttp());
-  setSocketPlatform(ServerSeltzerWebSocket.connect);
+void useSeltzerInVm() {
+  setHttpPlatform(const VmSeltzerHttp());
+  setSocketPlatform(VmSeltzerWebSocket.connect);
 }
 
-/// An implementation of [SeltzerHttp] that works within the browser.
+/// An implementation of [SeltzerHttp] implemented via the Dart VM.
 ///
-/// The "server" means in the Dart VM on the command line.
-class ServerSeltzerHttp extends PlatformSeltzerHttp {
-  /// Use the default server implementation of [SeltzerHttp].
+/// Worsk in the Dart VM on the command line or AoT compiled in Flutter.
+class VmSeltzerHttp extends PlatformSeltzerHttp {
+  /// Use the default VM implementation of [SeltzerHttp].
   @literal
-  const factory ServerSeltzerHttp() = ServerSeltzerHttp._;
+  const factory VmSeltzerHttp() = VmSeltzerHttp._;
 
-  const ServerSeltzerHttp._();
+  const VmSeltzerHttp._();
 
   @override
   Future<SeltzerHttpResponse> execute(
@@ -40,7 +40,7 @@ class ServerSeltzerHttp extends PlatformSeltzerHttp {
     var responseHeaders = <String, String>{};
     response.headers
         .forEach((name, value) => responseHeaders[name] = value.join(' '));
-    return new _IOSeltzerHttpResponse(
+    return new _VmSeltzerHttpResponse(
       payload,
       request.encoding,
       new Map<String, String>.unmodifiable(responseHeaders),
@@ -48,7 +48,7 @@ class ServerSeltzerHttp extends PlatformSeltzerHttp {
   }
 }
 
-class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
+class _VmSeltzerHttpResponse implements SeltzerHttpResponse {
   @override
   final Map<String, String> headers;
 
@@ -56,7 +56,7 @@ class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
 
   final List<int> _payload;
 
-  _IOSeltzerHttpResponse(this._payload, this._encoding, this.headers);
+  _VmSeltzerHttpResponse(this._payload, this._encoding, this.headers);
 
   @override
   List<int> readAsBytes() => new List<int>.unmodifiable(_payload);
@@ -65,22 +65,22 @@ class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
   String readAsString() => _encoding.decode(_payload);
 }
 
-/// A [SeltzerWebSocket] implementation for the dart vm.
-class ServerSeltzerWebSocket implements SeltzerWebSocket {
+/// A [SeltzerWebSocket] implementation for the Dart VM.
+class VmSeltzerWebSocket implements SeltzerWebSocket {
   /// Connects via web socket to [url].
-  static Future<ServerSeltzerWebSocket> connect(String url) async {
-    return new ServerSeltzerWebSocket._(
+  static Future<VmSeltzerWebSocket> connect(String url) async {
+    return new VmSeltzerWebSocket._(
       await WebSocket.connect(url),
-      new Completer<Null>.sync(),
+      new Completer<SeltzerSocketClosedEvent>.sync(),
     );
   }
 
-  final Completer<Null> _onCloseCompleter;
+  final Completer<SeltzerSocketClosedEvent> _onCloseCompleter;
   final WebSocket _webSocket;
 
-  ServerSeltzerWebSocket._(
+  VmSeltzerWebSocket._(
     WebSocket webSocket,
-    Completer<Null> onCloseCompleter,
+    Completer<SeltzerSocketClosedEvent> onCloseCompleter,
   )
       : onMessage =
             webSocket.asBroadcastStream().asyncMap(_decodeSocketMessage),
@@ -88,18 +88,27 @@ class ServerSeltzerWebSocket implements SeltzerWebSocket {
         _onCloseCompleter = onCloseCompleter {
     onMessage.isEmpty.then((_) {
       if (webSocket.readyState == WebSocket.CLOSED) {
-        onCloseCompleter.complete();
+        _triggerOnClose();
       } else {
-        webSocket.done.then((_) => onCloseCompleter.complete());
+        webSocket.done.then((_) => _triggerOnClose());
       }
     });
+  }
+
+  void _triggerOnClose() {
+    _onCloseCompleter.complete(
+      new SeltzerSocketClosedEvent(
+        _webSocket.closeCode,
+        _webSocket.closeReason,
+      ),
+    );
   }
 
   @override
   final Stream<SeltzerMessage> onMessage;
 
   @override
-  Future<Null> get onClose => _onCloseCompleter.future;
+  Future<SeltzerSocketClosedEvent> get onClose => _onCloseCompleter.future;
 
   @override
   Future<Null> close({int code, String reason}) async {

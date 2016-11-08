@@ -29,7 +29,7 @@ abstract class SeltzerWebSocket {
   Stream<SeltzerMessage> get onMessage;
 
   /// An future that completes when the socket is closed.
-  Future<Null> get onClose;
+  Future<SeltzerSocketClosedEvent> get onClose;
 
   /// Initiates closing this socket's connection.
   ///
@@ -48,6 +48,17 @@ abstract class SeltzerWebSocket {
   Future<Null> sendString(String data);
 }
 
+/// Returned from [SeltzerWebSocket.onClose].
+class SeltzerSocketClosedEvent {
+  /// Code defining why the socket closed.
+  final int code;
+
+  /// Message why the socket closed.
+  final String reason;
+
+  const SeltzerSocketClosedEvent(this.code, [this.reason]);
+}
+
 /// An [SeltzerWebSocket] that delegates to an existing instance.
 ///
 /// Suitable for wrapping existing implementation and overriding some details.
@@ -61,7 +72,7 @@ class SeltzerWebSocketTransformer implements SeltzerWebSocket {
   Stream<SeltzerMessage> get onMessage => _delegate.onMessage;
 
   @override
-  Future<Null> get onClose => _delegate.onClose;
+  Future<SeltzerSocketClosedEvent> get onClose => _delegate.onClose;
 
   @override
   Future<Null> close({int code, String reason}) =>
@@ -76,7 +87,7 @@ class SeltzerWebSocketTransformer implements SeltzerWebSocket {
 
 /// Elegant and rich cross-platform HTTP service.
 ///
-/// See `platform/browser.dart` and `platform/server.dart` for implementations.
+/// See `platform/browser.dart` and `platform/vm.dart` for implementations.
 abstract class SeltzerHttp {
   /// Returns the platform-initialized [SeltzerHttp] instance.
   ///
