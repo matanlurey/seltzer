@@ -14,7 +14,7 @@ SeltzerHttp _platform;
 // The current configured _WebSocketProvider.
 //
 // As with the getter `_platform`, users are expected to use a configuration
-// method to intialize this provider.
+// method to initialize this provider.
 SeltzerWebSocketProvider _platformSocket;
 
 const _platformAlreadySetError = 'Platform already initialized. In most` '

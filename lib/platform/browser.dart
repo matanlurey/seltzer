@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:html';
 import 'dart:typed_data';
 
@@ -50,7 +49,10 @@ class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
   Map<String, String> get headers => _request.responseHeaders;
 
   @override
-  String get payload => _request.responseText;
+  List<int> readAsBytes() => new List<int>.unmodifiable(_request.response);
+
+  @override
+  String readAsString() => _request.responseText;
 }
 
 /// A [SeltzerWebSocket] implementation for the browser.
@@ -69,12 +71,14 @@ class BrowserSeltzerWebSocket implements SeltzerWebSocket {
   BrowserSeltzerWebSocket._(this._webSocket);
 
   @override
-  Future<Null> get onClose => _webSocket.onClose.first.then((_) => null);
+  Future<Null> get onClose async {
+    await _webSocket.onClose.first;
+  }
 
   @override
-  Stream<SeltzerMessage> get onMessage {
-    return _webSocket.onMessage.map((e) => new _BrowserSeltzerMessage(e.data));
-  }
+  Stream<SeltzerMessage> get onMessage => _webSocket.onMessage.asyncMap((e) {
+        return _decodeSocketMessage(e.data);
+      });
 
   @override
   Future<Null> close({int code, String reason}) async {
@@ -101,24 +105,12 @@ class BrowserSeltzerWebSocket implements SeltzerWebSocket {
   }
 }
 
-class _BrowserSeltzerMessage implements SeltzerMessage {
-  final Object _payload;
-
-  _BrowserSeltzerMessage(this._payload);
-
-  @override
-  Future<ByteBuffer> readAsArrayBuffer() async {
-    if (_payload is String) {
-      return new Uint8List.fromList(new Utf8Encoder().convert(_payload)).buffer;
-    } else {
-      // _payload must be a Blob.
-      var fileReader = new FileReader()..readAsArrayBuffer(_payload);
-      await fileReader.onLoadEnd.first;
-      TypedData result = fileReader.result;
-      return result.buffer;
-    }
+Future<SeltzerMessage> _decodeSocketMessage(payload) async {
+  if (payload is String) {
+    return new PlatformSeltzerTextMessage(payload);
+  } else {
+    final reader = new FileReader()..readAsArrayBuffer(payload);
+    await reader.onLoadEnd.first;
+    return new PlatformSeltzerBinaryMessage(reader.result);
   }
-
-  @override
-  Future<String> readAsString() async => _payload.toString();
 }

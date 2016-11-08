@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 const _echoUrl = 'ws://localhost:9095';
 
 /// Runs a common test suite that assumes a pre-configured Seltzer.
-void runPlatformTests() {
+void runSocketTests() {
   group('$SeltzerWebSocket', () {
     SeltzerWebSocket webSocket;
 
@@ -40,7 +40,9 @@ void runPlatformTests() {
       await webSocket.onClose;
       expect(webSocket.sendString('hello-world'), throwsStateError);
       expect(
-          webSocket.sendBytes(new Uint8List(07734).buffer), throwsStateError);
+        webSocket.sendBytes(new Uint8List(07734).buffer),
+        throwsStateError,
+      );
       // prevent tearDown when socket already closed.
       webSocket = null;
     });
@@ -49,7 +51,7 @@ void runPlatformTests() {
       var payload = 'string data';
       var completer = new Completer();
       webSocket.onMessage.listen(((message) {
-        expect(message.readAsString(), completion(payload));
+        expect(message.readAsString(), payload);
         completer.complete();
       }));
       webSocket.sendString(payload);
@@ -60,10 +62,8 @@ void runPlatformTests() {
       var payload = new Int8List.fromList([1, 2]);
       var completer = new Completer();
       webSocket.onMessage.listen((message) {
-        message.readAsArrayBuffer().then((ByteBuffer buffer) {
-          expect(buffer.asInt8List(), payload);
-          completer.complete();
-        });
+        expect(message.readAsBytes(), payload);
+        completer.complete();
       });
       webSocket.sendBytes(payload.buffer);
       await completer.future;

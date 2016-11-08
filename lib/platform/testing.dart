@@ -58,8 +58,13 @@ class _FakeHttpResponse implements SeltzerHttpResponse {
   @override
   final Map<String, String> headers;
 
-  @override
-  final String payload;
+  final String _payload;
 
-  _FakeHttpResponse(this.payload, this.headers);
+  _FakeHttpResponse(this._payload, this.headers);
+
+  @override
+  List<int> readAsBytes() => _payload.codeUnits;
+
+  @override
+  String readAsString() => _payload;
 }

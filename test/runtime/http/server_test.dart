@@ -1,12 +1,12 @@
 @TestOn('vm')
-library seltzer.test.platform.web_socket.server_test;
+library seltzer.test.platform.browser_test;
 
 import 'package:seltzer/platform/server.dart';
 import 'package:test/test.dart';
 
-import 'common_utils.dart';
+import '../../common/http.dart';
 
 void main() {
   useSeltzerInTheServer();
-  runPlatformTests();
+  runHttpTests();
 }

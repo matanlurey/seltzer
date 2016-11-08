@@ -36,12 +36,13 @@ class ServerSeltzerHttp extends PlatformSeltzerHttp {
     var request = await new HttpClient().openUrl(method, Uri.parse(url));
     headers.forEach(request.headers.add);
     var response = await request.close();
-    var payload = await UTF8.decodeStream(response);
+    var payload = await response.first;
     var responseHeaders = <String, String>{};
     response.headers
         .forEach((name, value) => responseHeaders[name] = value.join(' '));
     return new _IOSeltzerHttpResponse(
       payload,
+      request.encoding,
       new Map<String, String>.unmodifiable(responseHeaders),
     );
   }
@@ -51,10 +52,17 @@ class _IOSeltzerHttpResponse implements SeltzerHttpResponse {
   @override
   final Map<String, String> headers;
 
-  @override
-  final String payload;
+  final Encoding _encoding;
 
-  _IOSeltzerHttpResponse(this.payload, this.headers);
+  final List<int> _payload;
+
+  _IOSeltzerHttpResponse(this._payload, this._encoding, this.headers);
+
+  @override
+  List<int> readAsBytes() => new List<int>.unmodifiable(_payload);
+
+  @override
+  String readAsString() => _encoding.decode(_payload);
 }
 
 /// A [SeltzerWebSocket] implementation for the dart vm.
@@ -74,9 +82,8 @@ class ServerSeltzerWebSocket implements SeltzerWebSocket {
     WebSocket webSocket,
     Completer<Null> onCloseCompleter,
   )
-      : onMessage = webSocket
-            .asBroadcastStream()
-            .map((p) => new _ServerSeltzerMessage(p)),
+      : onMessage =
+            webSocket.asBroadcastStream().asyncMap(_decodeSocketMessage),
         _webSocket = webSocket,
         _onCloseCompleter = onCloseCompleter {
     onMessage.isEmpty.then((_) {
@@ -119,24 +126,12 @@ class ServerSeltzerWebSocket implements SeltzerWebSocket {
   }
 }
 
-class _ServerSeltzerMessage implements SeltzerMessage {
-  final Object _payload;
-
-  _ServerSeltzerMessage(this._payload);
-
-  @override
-  Future<ByteBuffer> readAsArrayBuffer() async {
-    if (_payload is ByteBuffer) {
-      return _payload;
-    } else if (_payload is TypedData) {
-      TypedData data = _payload;
-      return data.buffer;
-    } else {
-      // _payload must be String.
-      return new Uint8List.fromList(new Utf8Encoder().convert(_payload)).buffer;
-    }
+Future<SeltzerMessage> _decodeSocketMessage(payload) async {
+  if (payload is ByteBuffer) {
+    return new PlatformSeltzerBinaryMessage(payload.asUint8List());
   }
-
-  @override
-  Future<String> readAsString() async => _payload.toString();
+  if (payload is TypedData) {
+    return new PlatformSeltzerBinaryMessage(payload.buffer.asUint8List());
+  }
+  return new PlatformSeltzerTextMessage(payload);
 }
