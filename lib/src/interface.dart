@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
@@ -242,20 +243,41 @@ class PlatformSeltzerHttpRequest implements SeltzerHttpRequest {
   }
 }
 
-/// An HTTP response object.
-abstract class SeltzerHttpResponse {
-  /// Response headers.
-  Map<String, String> get headers;
+/// A message received by a [SeltzerWebSocket] or [SeltzerHttp] client.
+abstract class SeltzerMessage {
+  /// Returns as bytes representing the the message's payload.
+  List<int> readAsBytes();
 
-  /// Response payload.
-  String get payload;
+  /// Returns a string representing this message's payload.
+  String readAsString();
 }
 
-/// A message received by a [SeltzerWebSocket].
-abstract class SeltzerMessage {
-  /// Returns a [Future<ByteBuffer>] that completes with this message's payload.
-  Future<ByteBuffer> readAsArrayBuffer();
+class PlatformSeltzerBinaryMessage implements SeltzerMessage {
+  final List<int> _payload;
 
-  /// Returns a [Future<String>] that completes with this message's payload.
-  Future<String> readAsString();
+  PlatformSeltzerBinaryMessage(this._payload);
+
+  @override
+  List<int> readAsBytes() => new List<int>.unmodifiable(_payload);
+
+  @override
+  String readAsString() => UTF8.decode(_payload);
+}
+
+class PlatformSeltzerTextMessage implements SeltzerMessage {
+  final String _payload;
+
+  PlatformSeltzerTextMessage(this._payload);
+
+  @override
+  List<int> readAsBytes() => _payload.codeUnits;
+
+  @override
+  String readAsString() => _payload;
+}
+
+/// An HTTP response object.
+abstract class SeltzerHttpResponse implements SeltzerMessage {
+  /// HTTP response headers.
+  Map<String, String> get headers;
 }

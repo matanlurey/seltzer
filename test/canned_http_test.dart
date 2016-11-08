@@ -10,7 +10,7 @@ void main() {
     var http = new CannedSeltzerHttp();
     http.expect('GET', '/fake/url', response: 'Hello World');
     expect(
-      (await http.get('/fake/url').send().first).payload,
+      (await http.get('/fake/url').send().first).readAsString(),
       'Hello World',
     );
   });
