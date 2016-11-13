@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -20,7 +19,7 @@ void useSeltzerInVm() {
 /// An implementation of [SeltzerHttp] implemented via the Dart VM.
 ///
 /// Worsk in the Dart VM on the command line or AoT compiled in Flutter.
-class VmSeltzerHttp extends PlatformSeltzerHttp {
+class VmSeltzerHttp extends SeltzerHttp {
   /// Use the default VM implementation of [SeltzerHttp].
   @literal
   const factory VmSeltzerHttp() = VmSeltzerHttp._;
@@ -28,41 +27,26 @@ class VmSeltzerHttp extends PlatformSeltzerHttp {
   const VmSeltzerHttp._();
 
   @override
-  Future<SeltzerHttpResponse> execute(
-    String method,
-    String url, {
-    Map<String, String> headers,
-  }) async {
-    var request = await new HttpClient().openUrl(method, Uri.parse(url));
-    headers.forEach(request.headers.add);
-    var response = await request.close();
-    var payload = await response.first;
-    var responseHeaders = <String, String>{};
-    response.headers
-        .forEach((name, value) => responseHeaders[name] = value.join(' '));
-    return new _VmSeltzerHttpResponse(
-      payload,
-      request.encoding,
-      new Map<String, String>.unmodifiable(responseHeaders),
-    );
+  Stream<SeltzerHttpResponse> handle(SeltzerHttpRequest request,
+      [Object data]) {
+    return new HttpClient()
+        .openUrl(request.method, Uri.parse(request.url))
+        .asStream()
+        .asyncMap((r) async {
+      request.headers.forEach(r.headers.add);
+      final response = await r.close();
+      final payload = await response.first;
+      final headers = <String, String>{};
+      response.headers.forEach((name, value) {
+        headers[name] = value.join(' ');
+      });
+      if (payload is String) {
+        return new SeltzerHttpResponse.fromString(payload, headers: headers);
+      } else {
+        return new SeltzerHttpResponse.fromBytes(payload, headers: headers);
+      }
+    });
   }
-}
-
-class _VmSeltzerHttpResponse implements SeltzerHttpResponse {
-  @override
-  final Map<String, String> headers;
-
-  final Encoding _encoding;
-
-  final List<int> _payload;
-
-  _VmSeltzerHttpResponse(this._payload, this._encoding, this.headers);
-
-  @override
-  List<int> readAsBytes() => new List<int>.unmodifiable(_payload);
-
-  @override
-  String readAsString() => _encoding.decode(_payload);
 }
 
 /// A [SeltzerWebSocket] implementation for the Dart VM.
@@ -137,10 +121,10 @@ class VmSeltzerWebSocket implements SeltzerWebSocket {
 
 Future<SeltzerMessage> _decodeSocketMessage(payload) async {
   if (payload is ByteBuffer) {
-    return new PlatformSeltzerBinaryMessage(payload.asUint8List());
+    return new SeltzerMessage.fromBytes(payload.asUint8List());
   }
   if (payload is TypedData) {
-    return new PlatformSeltzerBinaryMessage(payload.buffer.asUint8List());
+    return new SeltzerMessage.fromBytes(payload.buffer.asUint8List());
   }
-  return new PlatformSeltzerTextMessage(payload);
+  return new SeltzerMessage.fromString(payload);
 }
