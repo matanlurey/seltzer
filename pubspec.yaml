@@ -5,8 +5,11 @@ authors:
   - Matan Lurey <matanl@google.com>
   - Kendal Harland <kjharland@google.com>
 homepage: https://github.com/matanlurey/seltzer
+environment:
+  sdk: ">=1.8.0 <2.0.0"
 dependencies:
-  meta: ">=1.0.4 <2.0.0"
+  meta: "^1.0.4"
+  quiver: "^0.23.0"
 dev_dependencies:
-  dart_style:
-  test:
+  dart_style: ">=0.2.10"
+  test: ">=0.12.15"

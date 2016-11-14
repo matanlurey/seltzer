@@ -4,6 +4,8 @@
 
 - Added `SeltzerSocketClosedEvent` with information why close occurred
 - Rename the `Server` implementations to `Vm` since they work on Flutter
+- Simplified how to extend/transform HTTP clients
+- Removed `CannedSeltzerHttp`; to be re-added/re-worked by 0.3
 
 ## 0.2.2-alpha
 
@@ -14,5 +16,5 @@
 
 ## 0.2.0-alpha
 
-- Added `CannedHttpResponse` and the `platform/testing.dart` library.
+- Added `CannedHttpResponse` and the `platform/testing.dart` library
 - Added response headers to `SeltzerHttpResponse`

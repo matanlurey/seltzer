@@ -19,7 +19,7 @@ void useSeltzerInTheBrowser() {
 /// An implementation of [SeltzerHttp] that works within the browser.
 ///
 /// The "browser" means support for Dartium, DDC, and dart2js.
-class BrowserSeltzerHttp extends PlatformSeltzerHttp {
+class BrowserSeltzerHttp extends SeltzerHttp {
   /// Use the default browser implementation of [SeltzerHttp].
   @literal
   const factory BrowserSeltzerHttp() = BrowserSeltzerHttp._;
@@ -27,32 +27,23 @@ class BrowserSeltzerHttp extends PlatformSeltzerHttp {
   const BrowserSeltzerHttp._();
 
   @override
-  Future<SeltzerHttpResponse> execute(
-    String method,
-    String url, {
-    Map<String, String> headers: const {},
-  }) async {
-    return new _HtmlSeltzerHttpResponse(await HttpRequest.request(
-      url,
-      method: method,
-      requestHeaders: headers,
-    ));
+  Stream<SeltzerHttpResponse> handle(
+    SeltzerHttpRequest request, [
+    Object payload,
+  ]) {
+    return HttpRequest
+        .request(
+          request.url,
+          method: request.method,
+          requestHeaders: request.headers,
+          sendData: payload,
+        )
+        .asStream()
+        .map((r) => new SeltzerHttpResponse(
+              r.response,
+              headers: r.responseHeaders,
+            ));
   }
-}
-
-class _HtmlSeltzerHttpResponse implements SeltzerHttpResponse {
-  final HttpRequest _request;
-
-  _HtmlSeltzerHttpResponse(this._request);
-
-  @override
-  Map<String, String> get headers => _request.responseHeaders;
-
-  @override
-  List<int> readAsBytes() => new List<int>.unmodifiable(_request.response);
-
-  @override
-  String readAsString() => _request.responseText;
 }
 
 /// A [SeltzerWebSocket] implementation for the browser.
@@ -111,10 +102,10 @@ class BrowserSeltzerWebSocket implements SeltzerWebSocket {
 
 Future<SeltzerMessage> _decodeSocketMessage(payload) async {
   if (payload is String) {
-    return new PlatformSeltzerTextMessage(payload);
+    return new SeltzerMessage.fromString(payload);
   } else {
     final reader = new FileReader()..readAsArrayBuffer(payload);
     await reader.onLoadEnd.first;
-    return new PlatformSeltzerBinaryMessage(reader.result);
+    return new SeltzerMessage.fromBytes(reader.result);
   }
 }
