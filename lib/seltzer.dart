@@ -11,7 +11,5 @@ export 'package:seltzer/src/interface.dart'
         SeltzerHttp,
         SeltzerHttpRequest,
         SeltzerHttpResponse,
-        SeltzerHttpTransformer,
         SeltzerWebSocket,
-        SeltzerWebSocketProvider,
-        SeltzerWebSocketTransformer;
+        SeltzerWebSocketProvider;

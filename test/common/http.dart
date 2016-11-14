@@ -59,7 +59,7 @@ void runHttpTests() {
 
   test('should send an HTTP header', () async {
     var response =
-        await get(_echoUrl).set('Authorization', 'abc123').send().first;
+        await (get(_echoUrl)..headers['Authorization'] = 'abc123').send().first;
     expect(JSON.decode(response.readAsString()), {
       'headers': {
         'Authorization': 'abc123',
