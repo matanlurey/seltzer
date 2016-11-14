@@ -39,11 +39,7 @@ abstract class SeltzerHttpRequest {
   Stream<dynamic> send([Object payload]);
 }
 
-/// A partial implementation of [SeltzerHttpRequest] that implements:
-///
-/// - equality
-/// - [hashCode]
-/// - [toJson]
+/// A partial implementation of [SeltzerHttpRequest].
 abstract class SeltzerHtpRequestMixin implements SeltzerHttpRequest {
   static const Equality _equality = const SeltzerHttpRequestEquality();
 
