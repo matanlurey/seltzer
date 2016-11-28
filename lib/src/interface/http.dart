@@ -7,6 +7,8 @@ import 'http_response.dart';
 ///
 /// May be implemented to support a simplified model of handling requests.
 abstract class SeltzerHttpHandler {
+  const SeltzerHttpHandler();
+
   /// Executes an HTTP [request].
   ///
   /// If [payload] is specified:
@@ -16,12 +18,15 @@ abstract class SeltzerHttpHandler {
     SeltzerHttpRequest request, [
     Object payload,
   ]);
+
+  /// Returns the handler as [SeltzerHttp] instance.
+  SeltzerHttp asHttpClient() => new _AsHttpClient(this);
 }
 
 /// Elegant and rich cross-platform HTTP service.
 ///
 /// See `platform/browser.dart` and `platform/vm.dart` for implementations.
-abstract class SeltzerHttp implements SeltzerHttpHandler {
+abstract class SeltzerHttp extends SeltzerHttpHandler {
   const SeltzerHttp();
 
   /// Create a request to DELETE from [url].
@@ -45,5 +50,22 @@ abstract class SeltzerHttp implements SeltzerHttpHandler {
       method: method,
       url: url,
     );
+  }
+}
+
+class _AsHttpClient extends SeltzerHttp {
+  final SeltzerHttpHandler _handler;
+
+  const _AsHttpClient(this._handler);
+
+  @override
+  SeltzerHttp asHttpClient() => this;
+
+  @override
+  Stream<SeltzerHttpResponse> handle(
+    SeltzerHttpRequest request, [
+    Object payload,
+  ]) {
+    return _handler.handle(request, payload);
   }
 }
