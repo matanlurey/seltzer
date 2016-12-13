@@ -31,8 +31,7 @@ class VmSeltzerHttp extends SeltzerHttp {
       [Object data]) {
     return new HttpClient()
         .openUrl(request.method, Uri.parse(request.url))
-        .asStream()
-        .asyncMap((r) async {
+        .then((r) async {
       request.headers.forEach(r.headers.add);
       final response = await r.close();
       final payload = await response.first;
@@ -45,7 +44,7 @@ class VmSeltzerHttp extends SeltzerHttp {
       } else {
         return new SeltzerHttpResponse.fromBytes(payload, headers: headers);
       }
-    });
+    }).asStream();
   }
 }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4-alpha
+
+- Added `ReplaySeltzerHttp` and `SeltzerHttpRecorder` for testing
+
 ## 0.2.3-alpha
 
 - Added `SeltzerSocketClosedEvent` with information why close occurred

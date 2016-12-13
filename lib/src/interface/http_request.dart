@@ -5,6 +5,18 @@ import 'package:meta/meta.dart';
 import 'package:quiver/core.dart';
 
 import 'http.dart';
+import 'package:seltzer/src/interface/http_response.dart';
+
+class _NullSeltzerHttpHandler extends SeltzerHttpHandler {
+  const _NullSeltzerHttpHandler();
+
+  @override
+  Stream<SeltzerHttpResponse> handle(SeltzerHttpRequest request, [_]) {
+    throw new UnsupportedError(
+      'Cannot send requests - this was created as a standalone object',
+    );
+  }
+}
 
 /// An HTTP request object.
 ///
@@ -18,6 +30,19 @@ import 'http.dart';
 /// the server. In that case, [Stream.listen] may be preferred:
 ///     get('some/url.json').send().listen((value) => print('Got: $value'));
 abstract class SeltzerHttpRequest {
+  /// Creates a new standalone request that _cannot be sent_.
+  factory SeltzerHttpRequest(
+    String method,
+    String url, {
+    Map<String, String> headers: const {},
+  }) =>
+      new SeltzerHttpRequest.fromHandler(
+        const _NullSeltzerHttpHandler(),
+        headers: headers,
+        method: method,
+        url: url,
+      );
+
   /// Create a default implementation from a [handler].
   factory SeltzerHttpRequest.fromHandler(
     SeltzerHttpHandler handler, {
@@ -36,7 +61,7 @@ abstract class SeltzerHttpRequest {
   String get url;
 
   /// Makes the HTTP request, and returns a [Stream] of results.
-  Stream<dynamic> send([Object payload]);
+  Stream<SeltzerHttpResponse> send([Object payload]);
 }
 
 /// A partial implementation of [SeltzerHttpRequest].
@@ -77,6 +102,9 @@ abstract class SeltzerHttpRequestBase extends SeltzerHtpRequestMixin {
     @required this.url,
   })
       : this.headers = headers ?? <String, String>{};
+
+  @override
+  String toString() => '$method $url {headers: ${headers.length}}';
 }
 
 /// A reusable [Equality] implementation for [SeltzerHttpRequest].

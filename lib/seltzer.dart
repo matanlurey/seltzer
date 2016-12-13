@@ -9,6 +9,7 @@ export 'package:seltzer/src/context.dart'
 export 'package:seltzer/src/interface.dart'
     show
         SeltzerHttp,
+        SeltzerHttpHandler,
         SeltzerHttpRequest,
         SeltzerHttpResponse,
         SeltzerWebSocket,
