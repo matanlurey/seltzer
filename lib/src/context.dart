@@ -66,7 +66,7 @@ SeltzerHttp get _seltzer {
 /// Connects to a [web socket](https://tools.ietf.org/html/rfc6455) at [url].
 ///
 /// Uses the currently configured platform configuration.
-Future<SeltzerWebSocket> connect(String url) => _platformSocket(url);
+SeltzerWebSocket connect(String url) => _platformSocket(url);
 
 /// Creates a `DELETE` HTTP request to [url].
 ///
