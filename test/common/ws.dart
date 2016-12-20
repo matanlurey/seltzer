@@ -15,41 +15,15 @@ void runSocketTests() {
       webSocket = await connect(_echoUrl);
     });
 
-    group('onClose', () {
-      tearDown(() {
-        // prevent tearDown when socket already closed.
-        webSocket = null;
-      });
-
-      test('should emit a single event when the stream closes.', () async {
-        webSocket.close();
-        expect(webSocket.onClose, completion(isNotNull));
-      });
-
-      test('should throw a StateError if called after the socket closes',
-          () async {
-        await webSocket.close();
-        await webSocket.onClose;
-        expect(webSocket.close(), throwsStateError);
-      });
-    });
-
-    test('should throw a StateError if data is sent after the socket closes',
-        () async {
-      await webSocket.close();
-      await webSocket.onClose;
-      expect(webSocket.sendString('hello-world'), throwsStateError);
-      expect(
-        webSocket.sendBytes(new Uint8List(07734).buffer),
-        throwsStateError,
-      );
-      // prevent tearDown when socket already closed.
-      webSocket = null;
+    test('onClose should emit an event when the stream closes.', () async {
+      webSocket.close();
+      expect(webSocket.onClose, completion(isNotNull));
     });
 
     test('sendString should send string data.', () async {
       var payload = 'string data';
       var completer = new Completer();
+
       webSocket.onMessage.listen(((message) {
         expect(message.readAsString(), payload);
         completer.complete();
@@ -67,6 +41,22 @@ void runSocketTests() {
       });
       webSocket.sendBytes(payload.buffer);
       await completer.future;
+    });
+
+    group('close', () {
+      test('should prevent sending further messages', () async {
+        webSocket.close();
+        await webSocket.onClose;
+        expect(() => webSocket.sendString('A'), throwsStateError);
+        expect(() => webSocket.sendBytes(new Int8List(1).buffer),
+            throwsStateError);
+      });
+
+      test('should prevent further calls to close', () async {
+        webSocket.close();
+        await webSocket.onClose;
+        expect(() => webSocket.close(), throwsStateError);
+      });
     });
   });
 }

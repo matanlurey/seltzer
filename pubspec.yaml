@@ -1,5 +1,5 @@
 name: seltzer
-version: 0.2.4-alpha
+version: 0.3.0-alpha
 description: An elegant and rich cross-platform HTTP library for Dart.
 authors:
   - Matan Lurey <matanl@google.com>
@@ -13,6 +13,7 @@ dependencies:
   meta: "^1.0.4"
   reply: "0.1.2-dev"
   quiver: "^0.23.0"
+  web_socket_channel: "^1.0.4"
 
 dev_dependencies:
   dart_style: ">=0.2.10"
