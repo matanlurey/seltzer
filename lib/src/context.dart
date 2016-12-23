@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:seltzer/src/interface.dart';
 
 // The currently configured implementation of Seltzer.

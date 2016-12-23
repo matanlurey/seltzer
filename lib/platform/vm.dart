@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:seltzer/src/context.dart';
@@ -15,8 +14,9 @@ export 'package:seltzer/seltzer.dart';
 /// This is appropriate for clients running in the VM on the command line.
 void useSeltzerInVm() {
   setHttpPlatform(const VmSeltzerHttp());
-  setSocketPlatform((String url) =>
-      new ChannelWebSocket(new IOWebSocketChannel.connect(url)));
+  setSocketPlatform(
+    (String url) => new ChannelWebSocket(new IOWebSocketChannel.connect(url)),
+  );
 }
 
 /// An implementation of [SeltzerHttp] implemented via the Dart VM.
