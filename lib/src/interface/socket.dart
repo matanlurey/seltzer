@@ -2,10 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:seltzer/src/context.dart' as platform;
-
-import 'package:seltzer/src/socket_impl.dart';
-import 'package:stream_channel/stream_channel.dart';
-import 'socket_message.dart';
+import 'package:seltzer/src/interface/socket_message.dart';
 
 /// Returns a connected [SeltzerWebSocket] to [url].
 typedef SeltzerWebSocket SeltzerWebSocketProvider(String url);

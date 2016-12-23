@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:html';
-import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:seltzer/src/context.dart';
@@ -15,8 +14,9 @@ export 'package:seltzer/seltzer.dart';
 /// This is appropriate for clients running in Dartium, DDC, and dart2js.
 void useSeltzerInTheBrowser() {
   setHttpPlatform(const BrowserSeltzerHttp());
-  setSocketPlatform((String url) =>
-      new ChannelWebSocket(new HtmlWebSocketChannel.connect(url)));
+  setSocketPlatform(
+    (String url) => new ChannelWebSocket(new HtmlWebSocketChannel.connect(url)),
+  );
 }
 
 /// An implementation of [SeltzerHttp] that works within the browser.

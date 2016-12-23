@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- Use `WebSocketChannel` as the backing implementation for sockets
+- Replace `sendX` and `close` methods to return `void` instead of `Future`
+
 ## 0.2.4-alpha
 
 - Added `ReplaySeltzerHttp` and `SeltzerHttpRecorder` for testing
