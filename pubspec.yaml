@@ -1,5 +1,5 @@
 name: seltzer
-version: 0.3.0
+version: 0.4.0
 description: An elegant and rich cross-platform HTTP library for Dart.
 authors:
   - Matan Lurey <matanl@google.com>

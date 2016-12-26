@@ -109,7 +109,7 @@ abstract class SeltzerHttpRequestBase extends SeltzerHtpRequestMixin {
 
 /// A reusable [Equality] implementation for [SeltzerHttpRequest].
 ///
-/// The default implementation of equality for [SeltzerHttpRequestMixin].
+/// The default implementation of equality for requests.
 class SeltzerHttpRequestEquality implements Equality<SeltzerHttpRequest> {
   static const Equality _mapEquality = const MapEquality();
 
@@ -152,5 +152,7 @@ class _DefaultSeltzerHttpRequest extends SeltzerHttpRequestBase {
       : super(headers: headers, method: method, url: url);
 
   @override
-  Stream send([Object payload]) => _handler.handle(this, payload);
+  Stream<SeltzerHttpResponse> send([Object payload]) {
+    return _handler.handle(this, payload);
+  }
 }

@@ -1,5 +1,6 @@
 # Seltzer
 
+[![pub package](https://img.shields.io/pub/v/seltzer.svg)](https://pub.dartlang.org/packages/seltzer)
 [![Build Status](https://travis-ci.org/matanlurey/seltzer.svg?branch=master)](https://travis-ci.org/matanlurey/seltzer)
 
 An elegant and rich cross-platform HTTP library for Dart.
@@ -49,11 +50,10 @@ are expecting once:
 import 'package:seltzer/seltzer.dart' as seltzer;
 import 'package:seltzer/platform/browser.dart';
 
-void main() {
+main() async {
   useSeltzerInTheBrowser();
-  seltzer.get('some/url.json').send().first.then((response) {
-    print('Retrieved: ${response.payload}');
-  });
+  final response = await seltzer.get('some/url.json').send().first;
+  print('Retrieved: ${await response.readAsString()}');
 }
 ```
 

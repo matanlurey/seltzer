@@ -9,7 +9,7 @@ const _echoUrl = 'http://localhost:9090';
 void runHttpTests() {
   test('should make a valid DELETE request', () async {
     var response = await delete('$_echoUrl/das/fridge/lacroix').send().first;
-    expect(JSON.decode(response.readAsString()), {
+    expect(JSON.decode(await response.readAsString()), {
       'headers': {},
       'method': 'DELETE',
       'url': '/das/fridge/lacroix',
@@ -19,7 +19,7 @@ void runHttpTests() {
 
   test('should make a valid GET request', () async {
     var response = await get('$_echoUrl/flags.json').send().first;
-    expect(JSON.decode(response.readAsString()), {
+    expect(JSON.decode(await response.readAsString()), {
       'headers': {},
       'method': 'GET',
       'url': '/flags.json',
@@ -29,7 +29,7 @@ void runHttpTests() {
 
   test('should make a valid PATCH request', () async {
     var response = await patch('$_echoUrl/pants/up').send().first;
-    expect(JSON.decode(response.readAsString()), {
+    expect(JSON.decode(await response.readAsString()), {
       'headers': {},
       'method': 'PATCH',
       'url': '/pants/up',
@@ -39,7 +39,7 @@ void runHttpTests() {
 
   test('should make a valid POST request', () async {
     var response = await post('$_echoUrl/users/clear').send().first;
-    expect(JSON.decode(response.readAsString()), {
+    expect(JSON.decode(await response.readAsString()), {
       'headers': {},
       'method': 'POST',
       'url': '/users/clear',
@@ -49,7 +49,7 @@ void runHttpTests() {
 
   test('should make a valid PUT request', () async {
     var response = await put('$_echoUrl/pants/on').send().first;
-    expect(JSON.decode(response.readAsString()), {
+    expect(JSON.decode(await response.readAsString()), {
       'headers': {},
       'method': 'PUT',
       'url': '/pants/on',
@@ -60,7 +60,7 @@ void runHttpTests() {
   test('should send an HTTP header', () async {
     var response =
         await (get(_echoUrl)..headers['Authorization'] = 'abc123').send().first;
-    expect(JSON.decode(response.readAsString()), {
+    expect(JSON.decode(await response.readAsString()), {
       'headers': {
         'Authorization': 'abc123',
       },

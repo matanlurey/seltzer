@@ -30,23 +30,20 @@ class VmSeltzerHttp extends SeltzerHttp {
   const VmSeltzerHttp._();
 
   @override
-  Stream<SeltzerHttpResponse> handle(SeltzerHttpRequest request,
-      [Object data]) {
+  Stream<SeltzerHttpResponse> handle(
+    SeltzerHttpRequest request, [
+    Object data,
+  ]) {
     return new HttpClient()
         .openUrl(request.method, Uri.parse(request.url))
         .then((r) async {
       request.headers.forEach(r.headers.add);
       final response = await r.close();
-      final payload = await response.first;
       final headers = <String, String>{};
       response.headers.forEach((name, value) {
         headers[name] = value.join(' ');
       });
-      if (payload is String) {
-        return new SeltzerHttpResponse.fromString(payload, headers: headers);
-      } else {
-        return new SeltzerHttpResponse.fromBytes(payload, headers: headers);
-      }
+      return new SeltzerHttpResponse.fromBytes(response, headers: headers);
     }).asStream();
   }
 }
