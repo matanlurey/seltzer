@@ -7,7 +7,7 @@ export 'package:seltzer/src/testing/replay.dart' show ReplaySeltzerHttp;
 /// Initializes `package:seltzer/seltzer.dart` to use [implementation].
 ///
 /// This is appropriate for test implementations that want to use an existing
-/// implementation, such as a [ReplaySeltzerHttp].
+/// implementation, such as a replay-based HTTP mock or server.
 void useSeltzerForTesting(SeltzerHttp implementation) {
   setHttpPlatform(implementation);
 }

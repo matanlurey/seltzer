@@ -14,7 +14,7 @@ echo "PASSED"
 
 # Make sure we pass the analyzer
 echo "Checking dartanalyzer..."
-FAILS_ANALYZER="$(find lib test tool -name "*.dart" | xargs dartanalyzer --options analysis_options.yaml)"
+FAILS_ANALYZER="$(find lib test tool -name "*.dart" | xargs dartanalyzer --options .analysis_options)"
 if [[ $FAILS_ANALYZER == *"[error]"* ]]
 then
   echo "FAILED"
@@ -34,6 +34,6 @@ dart tool/echo/ws.dart & export SOCKET_ECHO_PID=$!
 # Run all of our tests
 # If anything fails, we kill the ECHO_PID, otherwise kill at the end.
 echo "Running all tests..."
-pub run test -p "content-shell,vm" || kill $HTTP_ECHO_PID $SOCKET_ECHO_PID
+pub run test -p "content-shell,vm,chrome" || kill $HTTP_ECHO_PID $SOCKET_ECHO_PID
 kill $HTTP_ECHO_PID $SOCKET_ECHO_PID
 

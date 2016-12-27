@@ -18,7 +18,7 @@ main() {
 
   runPingTest() async {
     final response = await http.post('$_echoUrl/ping').send().last;
-    expect(JSON.decode(response.readAsString()), {
+    expect(JSON.decode(await response.readAsString()), {
       'data': '',
       'headers': {},
       'method': 'POST',

@@ -26,7 +26,8 @@ class SeltzerHttpRecorder extends SeltzerHttpHandler {
     Object payload,
   ]) {
     SeltzerHttpResponse last;
-    final transformer = new StreamTransformer.fromHandlers(
+    final transformer = new StreamTransformer<SeltzerHttpResponse,
+        SeltzerHttpResponse>.fromHandlers(
       handleData: (event, sink) {
         last = event;
         sink.add(event);

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'http.dart';
 import 'socket.dart';
@@ -6,8 +8,10 @@ import 'socket.dart';
 /// A single message response by a [SeltzerWebSocket] or [SeltzerHttp] client.
 class SeltzerMessage {
   final Encoding _encoding;
-  final List<int> _bytes;
-  final String _string;
+  final int _length;
+  final Stream<List<int>> _bytes;
+
+  String _string;
 
   /// Create a new [SeltzerMessage] from string or binary data.
   factory SeltzerMessage(data) => data is String
@@ -15,29 +19,42 @@ class SeltzerMessage {
       : new SeltzerMessage.fromBytes(data);
 
   /// Create a new [SeltzerMessage] from binary data.
-  SeltzerMessage.fromBytes(this._bytes, {Encoding encoding: UTF8})
+  SeltzerMessage.fromBytes(this._bytes, {int length, Encoding encoding: UTF8})
       : _encoding = encoding,
+        _length = length,
         _string = null;
 
   /// Create a new [SeltzerMessage] from text data.
   SeltzerMessage.fromString(this._string)
       : _encoding = null,
+        _length = null,
         _bytes = null;
 
-  /// Returns as bytes representing the the message's payload.
-  List<int> readAsBytes() {
-    if (_string != null) {
+  /// Returns as a stream of bytes representing the message's payload.
+  ///
+  /// Some responses may be streamed into multiple chunks, which means that
+  /// listening to `stream.first` is not enough. To read the entire chunk in a
+  /// single call, use [readAsBytesAll].
+  Stream<List<int>> readAsBytes() => _bytes ?? readAsBytesAll().asStream();
+
+  /// Returns bytes representing the message's payload.
+  Future<List<int>> readAsBytesAll() async {
+    if (_bytes == null) {
       return _string.codeUnits;
     }
-    return _bytes;
+    var offset = 0;
+    return _bytes.fold/*<List<int>>*/(
+      new Uint8List(_length),
+      (buffer, value) {
+        buffer.setRange(offset, value.length, value);
+        offset += value.length;
+      },
+    );
   }
 
   /// Returns a string representing this message's payload.
-  String readAsString() {
-    if (_string != null) {
-      return _string;
-    }
-    return _encoding.decode(_bytes);
+  Future<String> readAsString() async {
+    return _string ??= await _encoding.decodeStream(_bytes);
   }
 
   toJson() => _string ?? _bytes;

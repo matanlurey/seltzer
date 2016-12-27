@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- **BREAKING** `readAs<Bytes|String>` to return a `Stream` and `Future` instead
+  - This is due to the potentially streaming nature of network and file i/o
+  - For example, HTTP servers commonly send chunked responses
+- Added `readAsBytesAll` to auto-concatenate buffers together
+- Fix various strong-mode warnings
+
 ## 0.3.0
 
 - Use `WebSocketChannel` as the backing implementation for sockets

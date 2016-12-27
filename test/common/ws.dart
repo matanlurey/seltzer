@@ -11,21 +11,20 @@ void runSocketTests() {
   group('$SeltzerWebSocket', () {
     SeltzerWebSocket webSocket;
 
-    setUp(() async {
-      webSocket = await connect(_echoUrl);
+    setUp(() {
+      webSocket = connect(_echoUrl);
     });
 
     test('onClose should emit an event when the stream closes.', () async {
       webSocket.close();
-      expect(webSocket.onClose, completion(isNotNull));
+      expect(await webSocket.onClose, isNotNull);
     });
 
     test('sendString should send string data.', () async {
       var payload = 'string data';
       var completer = new Completer();
-
-      webSocket.onMessage.listen(((message) {
-        expect(message.readAsString(), payload);
+      webSocket.onMessage.listen(((message) async {
+        expect(await message.readAsString(), payload);
         completer.complete();
       }));
       webSocket.sendString(payload);
@@ -35,8 +34,8 @@ void runSocketTests() {
     test('sendBytes should send byte data.', () async {
       var payload = new Int8List.fromList([1, 2]);
       var completer = new Completer();
-      webSocket.onMessage.listen((message) {
-        expect(message.readAsBytes(), payload);
+      webSocket.onMessage.listen((message) async {
+        expect(await message.readAsBytes().first, payload);
         completer.complete();
       });
       webSocket.sendBytes(payload.buffer);
