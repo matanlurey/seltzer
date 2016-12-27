@@ -13,7 +13,7 @@ class ReplaySeltzerHttp extends SeltzerHttp {
     Recording<SeltzerHttpRequest, SeltzerHttpResponse> recording,
   ) = ReplaySeltzerHttp._;
 
-  /// Creates a new [ReplySeltzerHttp] from [pairs] of request/responses.
+  /// Creates a new [ReplaySeltzerHttp] from [pairs] of request/responses.
   factory ReplaySeltzerHttp.fromMap(
     Map<SeltzerHttpRequest, SeltzerHttpResponse> pairs,
   ) {

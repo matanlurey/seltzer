@@ -56,10 +56,14 @@ class ChannelWebSocket implements SeltzerWebSocket {
 
   static Future<SeltzerMessage> _decodeSocketMessage(payload) async {
     if (payload is ByteBuffer) {
-      return new SeltzerMessage.fromBytes(payload.asUint8List());
+      return new SeltzerMessage.fromBytes(new Stream.fromIterable([
+        payload.asUint8List(),
+      ]));
     }
     if (payload is TypedData) {
-      return new SeltzerMessage.fromBytes(payload.buffer.asUint8List());
+      return new SeltzerMessage.fromBytes(new Stream.fromIterable([
+        payload.buffer.asUint8List(),
+      ]));
     }
     return new SeltzerMessage.fromString(payload);
   }

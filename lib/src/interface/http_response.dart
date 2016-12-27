@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'socket_message.dart';
 
 /// An HTTP response object.
@@ -16,7 +17,7 @@ class SeltzerHttpResponse extends SeltzerMessage {
 
   /// Create a new HTTP response with binary data.
   SeltzerHttpResponse.fromBytes(
-    List<int> bytes, {
+    Stream<List<int>> bytes, {
     Map<String, String> headers: const {},
   })
       : this.headers = new Map<String, String>.unmodifiable(headers),
@@ -30,6 +31,7 @@ class SeltzerHttpResponse extends SeltzerMessage {
       : this.headers = new Map<String, String>.unmodifiable(headers),
         super.fromString(string);
 
+  @override
   toJson() {
     return {
       'data': super.toJson(),
