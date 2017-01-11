@@ -13,7 +13,8 @@ class SeltzerHttpResponse extends SeltzerMessage {
   }) =>
       data is String
           ? new SeltzerHttpResponse.fromString(data, headers: headers)
-          : new SeltzerHttpResponse.fromBytes(data, headers: headers);
+          : new SeltzerHttpResponse.fromBytes(data as Stream<List<int>>,
+              headers: headers);
 
   /// Create a new HTTP response with binary data.
   SeltzerHttpResponse.fromBytes(
