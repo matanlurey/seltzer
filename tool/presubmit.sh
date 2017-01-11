@@ -3,7 +3,7 @@
 # Make sure dartfmt is run on everything
 # This assumes you have dart_style as a dev_dependency
 echo "Checking dartfmt..."
-NEEDS_DARTFMT="$(find lib test tool -name "*.dart" | xargs pub run dart_style:format -n)"
+NEEDS_DARTFMT="$(find lib test tool -name "*.dart" | xargs `type -p pub` run dart_style:format -n)"
 if [[ ${NEEDS_DARTFMT} != "" ]]
 then
   echo "FAILED"
@@ -14,7 +14,7 @@ echo "PASSED"
 
 # Make sure we pass the analyzer
 echo "Checking dartanalyzer..."
-FAILS_ANALYZER="$(find lib test tool -name "*.dart" | xargs dartanalyzer --options .analysis_options)"
+FAILS_ANALYZER="$(find lib test tool -name "*.dart" | xargs `type -p dartanalyzer` --options .analysis_options)"
 if [[ $FAILS_ANALYZER == *"[error]"* ]]
 then
   echo "FAILED"
