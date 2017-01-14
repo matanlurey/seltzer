@@ -16,7 +16,7 @@ class SeltzerMessage {
   /// Create a new [SeltzerMessage] from string or binary data.
   factory SeltzerMessage(data) => data is String
       ? new SeltzerMessage.fromString(data)
-      : new SeltzerMessage.fromBytes(data);
+      : new SeltzerMessage.fromBytes(data as Stream<List<int>>);
 
   /// Create a new [SeltzerMessage] from binary data.
   SeltzerMessage.fromBytes(this._bytes, {int length, Encoding encoding: UTF8})

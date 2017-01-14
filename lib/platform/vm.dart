@@ -8,6 +8,7 @@ import 'package:seltzer/src/socket_impl.dart';
 import 'package:web_socket_channel/io.dart';
 
 export 'package:seltzer/seltzer.dart';
+export 'package:seltzer/src/interface/http_server.dart';
 
 /// Initializes `package:seltzer/seltzer.dart` to use [VmSeltzerHttp].
 ///
