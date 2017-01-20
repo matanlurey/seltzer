@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- Add basic HTTP server implementation.
+- Fix small strong-mode warning in http_response.dart
+
 ## 0.4.0
 
 - **BREAKING** `readAs<Bytes|String>` to return a `Stream` and `Future` instead
